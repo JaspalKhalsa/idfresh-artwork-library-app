@@ -1,0 +1,1526 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="theme-color" content="#037D70">
+<title>iD Fresh Artwork Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --frame:#037D70; --frame-ink:#FFFFFF; --frame-muted:#D6EEEA; --frame-pill:rgba(0,0,0,.24);
+  --canvas:#F3F3F1; --card:#FFFFFF; --soft:#EDEDEA; --field:#E7E7E4; --line:#DCDCD7;
+  --ink:#111111; --muted:#4F4F4F; --on-pastel:#111111;
+  --lime:#D9F26B; --mint:#CDEFD5; --lilac:#E7D7FB; --sky:#D3EEF8; --butter:#FBEBB0; --peach:#FBD3C0; --rose:#FDE3DF;
+  --late:#A3200F; --btn:#111111; --btn-ink:#FFFFFF;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --canvas:#181818; --card:#232323; --soft:#2C2C2C; --field:#2C2C2C; --line:#3A3A3A;
+    --ink:#F2F2F2; --muted:#B5B5B5;
+    --lime:#CFE85A; --mint:#A9D9B4; --lilac:#CDB8EE; --sky:#AED8E8; --butter:#E9D58A; --peach:#E9B39B; --rose:#F0B8AE;
+    --late:#7A1608; --btn:#F2F2F2; --btn-ink:#111111;
+  }
+}
+:root[data-theme="dark"]{
+  --canvas:#181818; --card:#232323; --soft:#2C2C2C; --field:#2C2C2C; --line:#3A3A3A;
+  --ink:#F2F2F2; --muted:#B5B5B5;
+  --lime:#CFE85A; --mint:#A9D9B4; --lilac:#CDB8EE; --sky:#AED8E8; --butter:#E9D58A; --peach:#E9B39B; --rose:#F0B8AE;
+  --late:#7A1608; --btn:#F2F2F2; --btn-ink:#111111;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--frame);color:var(--ink);font-family:Urbanist,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:inherit}
+.app{min-height:100vh;padding:0 10px 10px;display:flex;flex-direction:column}
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:16px 14px;color:var(--frame-ink)}
+.brand{display:flex;align-items:baseline;gap:8px;text-decoration:none;color:var(--frame-ink)}
+.brand b{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.brand span{font-size:15px;color:var(--frame-muted)}
+.nav{display:flex;flex-wrap:wrap;gap:4px}
+.nav a{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;color:#EAF6F4;text-decoration:none;font-size:15px;font-weight:500}
+.nav a[aria-current="page"]{background:var(--frame-pill);color:#FFF;font-weight:700}
+.nav .count{font-size:12px;font-weight:800;padding:2px 8px;border-radius:999px;background:#D9F26B;color:#111}
+.who{display:flex;align-items:center;gap:10px}
+.who select{background:var(--frame-pill);color:#FFF;border:none;border-radius:999px;min-height:44px;padding:0 14px;font-weight:600;max-width:220px}
+.rolesel{background:var(--soft);border:none;border-radius:999px;min-height:44px;padding:0 14px;font-weight:700;color:var(--ink)}
+.who select:disabled{opacity:1;cursor:default;-webkit-appearance:none;appearance:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 20px;border-radius:999px;border:none;cursor:pointer;font-weight:700;font-size:15px;text-decoration:none;white-space:nowrap}
+.btn-dark{background:var(--btn);color:var(--btn-ink)}
+.btn-lime{background:#D9F26B;color:#111}
+.btn-soft{background:var(--soft);color:var(--ink)}
+.btn-white{background:#FFFFFF;color:#111}
+.btn-wa{background:#25D366;color:#111}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:focus-visible,.chip:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #7A9A1E;outline-offset:2px}
+.canvas{flex:1 1 auto;background:var(--canvas);border-radius:30px;padding:clamp(16px,3vw,36px);display:flex;flex-direction:column;gap:22px;min-width:0}
+h1{margin:0;font-size:clamp(30px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.05}
+h2{margin:0;font-size:22px;font-weight:800;letter-spacing:-.01em}
+.sub{margin:4px 0 0;font-size:17px;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.tiles{display:flex;flex-wrap:wrap;gap:10px}
+.tile{border-radius:22px;padding:12px 18px;min-width:96px;text-align:center;color:var(--on-pastel)}
+.tile b{display:block;font-size:30px;font-weight:800;line-height:1}
+.tile span{font-size:13px;font-weight:700}
+.tile.dash{border:2px dashed var(--line);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 16px;border-radius:999px;border:none;background:var(--card);color:var(--ink);font-weight:700;font-size:15px;cursor:pointer}
+.chip[aria-selected="true"]{background:var(--btn);color:var(--btn-ink)}
+.chip .n{font-size:12px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--ink)}
+.chip[aria-selected="true"] .n{background:#D9F26B;color:#111}
+.search{display:flex;align-items:center;gap:10px;background:var(--field);border-radius:999px;padding:0 18px;min-height:48px;flex:0 1 360px}
+.search input{border:none;outline:none;background:transparent;font-size:15px;flex:1;min-width:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.list{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--card);border-radius:28px;padding:14px;display:flex;flex-wrap:wrap;align-items:center;gap:18px}
+.card.hot{background:var(--lime);color:var(--on-pastel)}
+.card.hot .meta{color:#333}
+.thumb{width:72px;height:72px;border-radius:22px;flex:0 0 auto;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;color:#111;overflow:hidden;position:relative}
+.thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.thumb em{font-style:normal;font-size:12px;font-weight:800;background:#FFF;padding:2px 7px;border-radius:999px;position:relative}
+.title{font-size:19px;font-weight:800;letter-spacing:-.01em;text-decoration:none;color:inherit}
+.meta{font-size:14px;color:var(--muted)}
+.bar{display:flex;gap:4px}
+.bar i{height:8px;flex:1;border-radius:999px;background:var(--line)}
+.bar i.d{background:var(--ink)} .card.hot .bar i.d{background:#111}
+.bar i.c{background:#7A9A1E}
+.av{display:flex}
+.av span{width:36px;height:36px;border-radius:999px;border:3px solid var(--card);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#111;margin-left:-10px}
+.av span:first-child{margin-left:0}
+.card.hot .av span{border-color:var(--lime)}
+.pill{display:inline-flex;align-items:center;min-height:34px;padding:0 14px;border-radius:999px;font-size:14px;font-weight:700;white-space:nowrap;color:#111}
+.p-late{background:var(--rose)} .p-late{color:#5C1208}
+.p-today{background:var(--butter)} .p-ok{background:var(--soft);color:var(--ink)} .p-live{background:var(--mint)}
+.empty{background:var(--card);border-radius:28px;padding:44px 20px;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center}
+.empty b{font-size:20px}
+.split{display:flex;flex-wrap:wrap;gap:22px;align-items:flex-start}
+.main{flex:999 1 520px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.side{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.panel{background:var(--card);border-radius:30px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.pastel{border-radius:28px;padding:10px;display:flex;flex-direction:column;gap:8px;color:var(--on-pastel)}
+.pastel .hd{display:flex;justify-content:space-between;padding:8px 12px 0;font-weight:700;font-size:15px}
+.pastel .bd{background:rgba(255,255,255,.55);border-radius:20px;padding:14px 16px;font-size:15px;line-height:1.45}
+.stages{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stages li{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:24px;border:2px dashed var(--line);color:var(--muted)}
+.stages li.done{background:var(--card);border-color:transparent;color:var(--ink)}
+.stages li.cur{background:var(--btn);border-color:transparent;color:var(--btn-ink)}
+.stages .dot{width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;background:var(--field);color:var(--ink);flex:0 0 auto}
+.stages li.done .dot{background:var(--mint);color:#111}
+.stages li.cur .dot{background:#D9F26B;color:#111}
+.stages b{display:block;font-size:15px}
+.stages small{font-size:13px;font-weight:600;opacity:.85}
+.art{background:var(--lilac);border-radius:30px;padding:16px;display:flex;flex-direction:column;gap:12px;color:var(--on-pastel)}
+.stage-box{background:#FFFFFF;border-radius:22px;min-height:220px;display:flex;align-items:center;justify-content:center;padding:20px;color:#111;overflow:hidden}
+.stage-box img{max-width:100%;max-height:560px;border-radius:12px}
+.stage-box.has-art{min-height:420px}
+.next{background:var(--lime);border-radius:30px;padding:20px;display:flex;flex-direction:column;gap:12px;color:var(--on-pastel)}
+.next .k{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.next .t{font-size:24px;font-weight:800;line-height:1.1}
+.drop{display:flex;flex-direction:column;align-items:center;gap:4px;background:#FFF;color:#111;border-radius:22px;padding:18px;border:2px dashed #9DB436;cursor:pointer;text-align:center}
+.drop input{position:absolute;width:1px;height:1px;opacity:0}
+.fileline{display:flex;flex-wrap:wrap;align-items:center;gap:12px;background:var(--soft);border-radius:20px;padding:10px 12px}
+.ext{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#111;flex:0 0 auto}
+.person{display:flex;align-items:center;gap:12px;padding:10px;border-radius:20px;background:var(--soft)}
+.person .ini{width:40px;height:40px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#111;flex:0 0 auto}
+.feed{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.feed li{display:flex;gap:10px;align-items:flex-start;font-size:15px;line-height:1.4}
+.feed .b{width:12px;height:12px;border-radius:999px;border:2px solid var(--ink);margin-top:4px;flex:0 0 auto}
+.feed small{display:block;color:var(--muted);font-size:13px}
+.compose{display:flex;gap:8px;background:var(--soft);border-radius:999px;padding:6px 6px 6px 18px;align-items:center}
+.compose input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-size:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.lib{background:var(--card);border-radius:28px;padding:10px;display:flex;flex-direction:column;gap:10px}
+.lib .pv{aspect-ratio:4/3;border-radius:22px;padding:14px;display:flex;flex-direction:column;justify-content:space-between;color:#111;position:relative;overflow:hidden}
+.lib .pv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.lib .pv > *{position:relative}
+.tag{font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px;background:#FFF;color:#111}
+.tag.dark{background:#111;color:#FFF}
+.bars{display:flex;flex-direction:column;gap:10px}
+.hb{display:grid;grid-template-columns:150px minmax(0,1fr) 40px;gap:12px;align-items:center;font-size:14px;font-weight:700}
+.hb .tr{height:22px;border-radius:999px;background:var(--soft);overflow:hidden}
+.hb .tr i{display:block;height:100%;background:var(--ink);border-radius:999px}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto;z-index:20}
+.modal{background:var(--canvas);border-radius:30px;padding:24px;width:min(720px,100%);display:flex;flex-direction:column;gap:16px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.f{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:700}
+.f input,.f select,.f textarea{background:var(--card);border:1px solid var(--line);border-radius:16px;min-height:46px;padding:10px 14px;font-weight:500;font-size:15px}
+.f textarea{min-height:90px;resize:vertical}
+.f.full{grid-column:1/-1}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.checks label{display:inline-flex;align-items:center;gap:8px;background:var(--card);border-radius:999px;padding:10px 14px;font-weight:600;cursor:pointer;min-height:44px}
+.err{color:var(--late);font-weight:700;font-size:14px}
+:root[data-theme="dark"] .err{color:#F0B8AE}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .err{color:#F0B8AE}}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#111;color:#FFF;padding:12px 20px;border-radius:999px;font-weight:700;z-index:30;max-width:calc(100% - 32px)}
+.banner{background:var(--butter);color:#111;border-radius:20px;padding:10px 16px;font-size:14px;font-weight:600}
+.checkbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:640px){.checkbar{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.chkbtn{display:flex;align-items:center;gap:10px;text-align:left;min-height:56px;padding:10px 12px;border-radius:18px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.chkbtn:hover:not(:disabled){border-color:var(--ink)}
+.chkbtn:disabled{cursor:not-allowed;opacity:.6}
+.chkbtn.busy{border-color:#037D70;opacity:1}
+.chkbtn b{display:block;font-size:15px;font-weight:800}
+.chkbtn small{display:block;font-size:12px;color:var(--muted);line-height:1.3}
+.chk-t{min-width:0}
+.dot{width:14px;height:14px;border-radius:999px;flex:0 0 auto;border:2px solid var(--line);background:var(--card)}
+.dot-pass{background:#3BAA6B;border-color:#3BAA6B}.dot-warn{background:#E0A13A;border-color:#E0A13A}.dot-fail{background:#D0402B;border-color:#D0402B}
+.chkbtn.busy .dot{border-color:#037D70;border-top-color:transparent;background:transparent;animation:spin 0.9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.chkbtn.busy .dot{animation:none}}
+.chk{display:flex;flex-direction:column;gap:8px;background:var(--soft);border-radius:22px;padding:14px 16px}
+.chk .hdr{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:800;font-size:16px}
+.chk ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:15px;line-height:1.45}
+.st{font-size:13px;font-weight:800;padding:4px 10px;border-radius:999px;color:#111;white-space:nowrap}
+.st-pass{background:var(--mint)} .st-warn{background:var(--butter)} .st-fail{background:var(--rose)} .st-na{background:var(--field);color:var(--ink)}
+.sw{display:inline-block;width:16px;height:16px;border-radius:5px;border:1px solid rgba(0,0,0,.2);vertical-align:-3px;margin-right:6px}
+@media (max-width:640px){.who .nm{display:none}.hb{grid-template-columns:100px minmax(0,1fr) 36px}}
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <a class="brand" href="#/work"><img src="logo-white.png" alt="iD Fresh Artwork Library" style="height:44px;width:auto;display:block"></a>
+    <nav class="nav" aria-label="Main" id="nav"></nav>
+    <div class="who">
+      <button class="btn btn-lime" data-act="new">+ New request</button>
+      <label class="sr" for="me">Your name</label>
+      <select id="me" aria-label="Your name"></select>
+      <a class="btn" style="background:rgba(0,0,0,.24);color:#FFF" href="#/password">Password</a>
+      <button class="btn" style="background:rgba(0,0,0,.24);color:#FFF" data-act="signout">Sign out</button>
+    </div>
+  </header>
+  <main class="canvas" id="view" aria-live="polite"></main>
+</div>
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+'use strict';
+var TEAM = [
+  ['Jaspal Khalsa','Creative'],['Ritesh','Creative'],['Rafeeq','Creative'],['Paul','Creative'],
+  ['Dhanad','Marketing'],['Deepika Das','Marketing'],['Subhrojeet Mukherjee','Marketing'],['Bharath Ram Ganapathy','Marketing'],
+  ['Yogesh Sadashiv','Quality'],['Koushik Bharadwaj','Quality'],['Chandana Jois','Manufacturing'],['Vandana Kothari','Legal']
+];
+var DEPT = {}; TEAM.forEach(function(t){ DEPT[t[0]] = t[1]; });
+/* ---------- Team, roles and permissions ---------- */
+var ROLES = {
+  admin:     { label: 'Admin',     who: 'Creative & brand leads',           copy: 'Full access. Manages the team and invites, check settings, and can do every project action.' },
+  requester: { label: 'Requester', who: 'Marketing',                        copy: 'Starts artwork requests, writes briefs, tracks progress and nudges people. Can view and download everything.' },
+  designer:  { label: 'Designer',  who: 'Creative team and agencies',       copy: 'Uploads artwork versions, runs the artwork checks and hands over final print-ready files.' },
+  approver:  { label: 'Approver',  who: 'Quality, Legal, Manufacturing',    copy: 'Reviews artwork, runs the checks, and approves or requests changes with a reason.' },
+  viewer:    { label: 'Viewer',    who: 'Sales, printers, leadership',      copy: 'Views projects and downloads approved files from the Library. Can’t change anything.' }
+};
+var ROLE_ORDER = ['admin', 'requester', 'designer', 'approver', 'viewer'];
+var DEPTS = ['Creative', 'Marketing', 'Quality', 'Legal', 'Manufacturing', 'Sales', 'Agency', 'Other'];
+var CAN = {
+  admin:     ['request', 'design', 'approve', 'check', 'note', 'nudge', 'upload', 'settings', 'team'],
+  requester: ['request', 'note', 'nudge', 'upload'],
+  designer:  ['request', 'design', 'check', 'note', 'nudge', 'upload'],
+  approver:  ['approve', 'check', 'note', 'nudge'],
+  viewer:    []
+};
+function can(a){ return (CAN[S.role] || []).indexOf(a) >= 0; }
+function applyTeam(rows){
+  S.team = (rows || []).slice().sort(function(a, b){ return String(a.full_name).localeCompare(String(b.full_name)); });
+  if (S.team.length){
+    TEAM = S.team.map(function(r){ return [r.full_name, r.department || '', r.email, r.role]; });
+    DEPT = {}; TEAM.forEach(function(t){ DEPT[t[0]] = t[1]; });
+  }
+  var mine = S.team.find(function(r){ return String(r.email).toLowerCase() === String(S.email || '').toLowerCase(); });
+  if (mine){ S.me = mine.full_name; S.role = ROLES[mine.role] ? mine.role : 'viewer'; S.meLocked = true; if (S.mode === 'notinvited') S.mode = 'live'; }
+  else if (S.mode === 'live'){ S.mode = 'notinvited'; }
+  fillMe(); render();
+}
+function loadTeam(){
+  return sb.from('team').select('email, full_name, department, role, invited_at, invited_by').then(function(r){
+    if (r.error){ toast('Couldn’t load the team — ' + r.error.message); return; }
+    applyTeam(r.data);
+  });
+}
+function peopleWith(roles){ return (S.team || []).filter(function(r){ return roles.indexOf(r.role) >= 0; }).map(function(r){ return r.full_name; }); }
+function sendInvites(emails){
+  if (!emails.length) return Promise.resolve();
+  toast('Sending ' + emails.length + ' invite' + (emails.length > 1 ? 's' : '') + '…');
+  return sb.functions.invoke('invite-user', { body: { emails: emails, redirectTo: location.origin + location.pathname } }).then(function(r){
+    if (r.error || (r.data && r.data.error)){ toast('Invites didn’t send — ' + ((r.data && r.data.error) || r.error.message)); return; }
+    var res = (r.data && r.data.results) || [], okN = res.filter(function(x){ return x.ok; }).length, bad = res.filter(function(x){ return !x.ok; });
+    toast(okN + ' invite' + (okN === 1 ? '' : 's') + ' sent' + (bad.length ? ' · ' + bad.length + ' failed: ' + bad.map(function(b){ return b.email + ' (' + b.error + ')'; }).join(', ') : '.'));
+    loadTeam();
+  });
+}
+function parseBulk(text){
+  var out = [], errs = [];
+  String(text || '').split('\n').forEach(function(line, i){
+    var l = line.trim(); if (!l) return;
+    var parts = l.split(/\t|,/).map(function(x){ return x.trim(); });
+    var email = parts.find(function(x){ return /@/.test(x); });
+    if (!email){ errs.push('Line ' + (i + 1) + ': no email'); return; }
+    email = email.toLowerCase();
+    if (email.slice(-COMPANY.length) !== COMPANY){ errs.push('Line ' + (i + 1) + ': ' + email + ' isn’t an @idfreshfood.com address'); return; }
+    var rest = parts.filter(function(x){ return x && x.toLowerCase() !== email; });
+    var role = rest.map(function(x){ return x.toLowerCase(); }).find(function(x){ return ROLES[x]; }) || 'viewer';
+    var dept = rest.find(function(x){ return DEPTS.map(function(d){ return d.toLowerCase(); }).indexOf(x.toLowerCase()) >= 0; });
+    var name = rest.find(function(x){ return x !== dept && !ROLES[x.toLowerCase()]; }) || email.split('@')[0];
+    out.push({ email: email, full_name: name, department: dept ? DEPTS.find(function(d){ return d.toLowerCase() === dept.toLowerCase(); }) : 'Other', role: role });
+  });
+  return { rows: out, errors: errs };
+}
+function viewTeam(){
+  if (!can('team')) return '<div class="empty"><b>Only admins can manage the team</b><span class="meta">Ask a Creative lead if someone needs access.</span></div>';
+  var team = S.team || [], notInv = team.filter(function(r){ return !r.invited_at; });
+  var roleCards = ROLE_ORDER.map(function(k, i){ var bg = ['var(--lime)', 'var(--sky)', 'var(--lilac)', 'var(--butter)', 'var(--mint)'][i];
+    return '<div class="pastel" style="background:' + bg + '"><div class="hd"><span>' + ROLES[k].label + '</span><span style="font-weight:600">' + team.filter(function(r){ return r.role === k; }).length + '</span></div><div class="bd"><b style="display:block;margin-bottom:4px">' + esc(ROLES[k].who) + '</b>' + esc(ROLES[k].copy) + '</div></div>'; }).join('');
+  var rows = team.map(function(r){
+    return '<div class="card" style="gap:14px"><span class="person" style="background:transparent;padding:0;flex:1 1 240px;min-width:0"><span class="ini" style="background:' + avc(r.full_name) + '">' + esc(ini(r.full_name)) + '</span><span style="min-width:0"><b style="display:block">' + esc(r.full_name) + '</b><span class="meta" style="word-break:break-all">' + esc(r.email) + ' · ' + esc(r.department || '') + '</span></span></span>' +
+      '<label class="sr" for="role-' + esc(r.email) + '">Access level for ' + esc(r.full_name) + '</label><select class="rolesel" id="role-' + esc(r.email) + '" data-role-for="' + esc(r.email) + '"' + (r.email === String(S.email).toLowerCase() ? ' disabled title="You can’t change your own level"' : '') + '>' + ROLE_ORDER.map(function(k){ return '<option value="' + k + '"' + (r.role === k ? ' selected' : '') + '>' + ROLES[k].label + '</option>'; }).join('') + '</select>' +
+      '<span class="pill ' + (r.invited_at ? 'p-live' : 'p-today') + '">' + (r.invited_at ? 'Invited ' + fmtDate(r.invited_at) : 'Not invited') + '</span>' +
+      '<button class="btn btn-dark" data-act="invite" data-email="' + esc(r.email) + '">' + (r.invited_at ? 'Resend invite' : 'Send invite') + '</button>' +
+      (r.email === String(S.email).toLowerCase() ? '<span class="pill p-ok" style="min-width:92px;justify-content:center">You</span>' : '<button class="btn btn-soft" data-act="removeMember" data-email="' + esc(r.email) + '" aria-label="Remove ' + esc(r.full_name) + '">Remove</button>') + '</div>';
+  }).join('');
+  return '<div class="row" style="align-items:flex-end"><div><h1>Team & access</h1><p class="sub">Add people, set what they can do, and send their sign-in invite.</p></div>' +
+    (notInv.length ? '<button class="btn btn-lime" data-act="inviteAll">Invite ' + notInv.length + ' people not yet invited</button>' : '') + '</div>' +
+    '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">' + roleCards + '</div>' +
+    '<div class="split"><div class="main"><section class="panel"><h2>Members · ' + team.length + '</h2>' + (rows || '<p class="meta" style="margin:0">No one yet — add people on the right.</p>') + '</section></div>' +
+    '<aside class="side"><form class="panel" data-form="member"><h2>Add a person</h2>' +
+    '<label class="f">Full name<input name="full_name" required autocomplete="off" placeholder="e.g. Deepika Das"></label>' +
+    '<label class="f">Work email<input name="email" type="email" required autocomplete="off" placeholder="name@idfreshfood.com"></label>' +
+    '<label class="f">Department<select name="department">' + DEPTS.map(function(d){ return '<option>' + d + '</option>'; }).join('') + '</select></label>' +
+    '<label class="f">Access level<select name="role">' + ROLE_ORDER.map(function(k){ return '<option value="' + k + '"' + (k === 'viewer' ? ' selected' : '') + '>' + ROLES[k].label + ' — ' + esc(ROLES[k].who) + '</option>'; }).join('') + '</select></label>' +
+    '<p class="err" id="mem-err" role="alert"></p><div class="chips"><button class="btn btn-dark" name="go" value="invite">Add & send invite</button><button class="btn btn-soft" name="go" value="add">Add only</button></div></form>' +
+    '<form class="panel" data-form="bulk"><h2>Add a list</h2><p class="meta" style="margin:0">Paste one person per line: <b>Name, email, department, level</b>. Copying from Excel works too.</p>' +
+    '<label class="f"><span class="sr">People to add</span><textarea name="list" rows="7" placeholder="Deepika Das, deepika.das@idfreshfood.com, Marketing, requester&#10;Yogesh Sadashiv, yogesh@idfreshfood.com, Quality, approver"></textarea></label>' +
+    '<label style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" name="invite" checked> Send invites now</label>' +
+    '<p class="err" id="bulk-err" role="alert"></p><button class="btn btn-dark">Add people</button></form></aside></div>';
+}
+
+var STAGES = [['brief','Brief'],['design','Design'],['approval','Approval'],['final','Final files'],['live','Live']];
+var SLA = { brief:2, design:3, approval:2, final:2 };
+var REASONS = ['Regulatory / FSSAI text','Claims & nutrition','Batch code / print area','Brand & visual','Copy or spelling','Dimensions / keyline','Other'];
+var CATS = ['Batter','Parota','Paratha','Chapati','Dairy','Speciality','Other'];
+var CAT_COLOR = { Batter:'var(--sky)', Parota:'#EFE2CF', Paratha:'var(--butter)', Chapati:'#EFE2CF', Dairy:'var(--lilac)', Speciality:'var(--peach)', Other:'var(--mint)' };
+var AV_COLORS = ['#CDEFD5','#E7D7FB','#D3EEF8','#FBEBB0','#FBD3C0','#FDE3DF'];
+
+var S = { projects: [], mode: 'connecting', filter: 'mine', q: '', lib: 'All', libq: '', me: null, uploading: false, checking: {}, brand: null };
+var db = null, assets = null, users = null;
+var DEFAULT_BRAND = { palette: [{ name: 'iD Fresh Teal', hex: '#037D70' }], qrDomains: ['idfreshfood.com'], minFontPt: 6, notes: '' };
+function brand(){ var b = S.brand || {}; return { palette: b.palette || DEFAULT_BRAND.palette, qrDomains: b.qrDomains || DEFAULT_BRAND.qrDomains, minFontPt: b.minFontPt || DEFAULT_BRAND.minFontPt, notes: b.notes || '', allowWords: b.allowWords || [] }; }
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function ini(n){ var p = String(n||'?').trim().split(/\s+/); return ((p[0]||'?')[0] + (p.length>1 ? p[p.length-1][0] : (p[0][1]||''))).toUpperCase(); }
+function avc(n){ var h=0; String(n).split('').forEach(function(c){ h=(h*31+c.charCodeAt(0))>>>0; }); return AV_COLORS[h % AV_COLORS.length]; }
+function first(n){ return String(n||'').split(' ')[0]; }
+function nowIso(){ return new Date().toISOString(); }
+function fmtDate(iso){ if(!iso) return '—'; var d = new Date(iso); if (isNaN(d)) return '—'; return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}); }
+function fmtWhen(iso){ if(!iso) return ''; var d=new Date(iso); if(isNaN(d)) return ''; return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) + ', ' + d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }
+function lsGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+function lsSet(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+
+function addWorkdays(date, n){ var d = new Date(date); var added = 0; while (added < n){ d.setDate(d.getDate()+1); var w = d.getDay(); if (w !== 0 && w !== 6) added++; } return d; }
+function dayDiff(a, b){ var A = new Date(a.getFullYear(),a.getMonth(),a.getDate()), B = new Date(b.getFullYear(),b.getMonth(),b.getDate()); return Math.round((B - A)/86400000); }
+function due(p){
+  if (p.stage === 'live' || !p.stageSince) return { label: p.stage === 'live' ? 'Live' : '', tone: 'live', late: false, days: 0 };
+  var d = addWorkdays(new Date(p.stageSince), SLA[p.stage] || 2);
+  var diff = dayDiff(d, new Date());
+  if (diff > 0) return { label: diff + (diff === 1 ? ' day late' : ' days late'), tone: 'late', late: true, days: diff };
+  if (diff === 0) return { label: 'Due today', tone: 'today', late: false, days: 0 };
+  if (diff === -1) return { label: 'Due tomorrow', tone: 'today', late: false, days: 0 };
+  return { label: 'Due in ' + (-diff) + ' days', tone: 'ok', late: false, days: 0 };
+}
+function stageIdx(k){ for (var i=0;i<STAGES.length;i++) if (STAGES[i][0]===k) return i; return 0; }
+function stageLabel(p){
+  if (p.stage === 'approval'){ var n = (p.approvers||[]).length, a = (p.approvers||[]).filter(function(x){ return (p.approvals||{})[x] === 'approved'; }).length; return 'Approval · ' + a + ' of ' + n + ' done'; }
+  if (p.stage === 'design') return 'Design · v' + ((parseInt(p.version, 10) || 0) + 1);
+  if (p.stage === 'final') return 'Hand over final files';
+  if (p.stage === 'brief') return 'Brief · draft';
+  return 'Live · v' + (p.version||1);
+}
+function waitingOn(p){
+  if (p.stage === 'brief') return [p.requestedBy];
+  if (p.stage === 'design' || p.stage === 'final') return [p.designer];
+  if (p.stage === 'approval') return (p.approvers||[]).filter(function(x){ return (p.approvals||{})[x] !== 'approved'; });
+  return [];
+}
+function actionFor(p){ return { brief:'Finish brief', design:'Upload artwork', approval:'Review & approve', final:'Upload final files' }[p.stage] || 'Open'; }
+function appLink(p){ return location.origin + location.pathname + '#/p/' + encodeURIComponent(p.id); }
+function waText(p){
+  var w = waitingOn(p), d = due(p), who = w.join(', ');
+  var line = {
+    brief: 'Brief is being drafted by ' + who + '.',
+    design: 'With ' + who + ' for artwork v' + ((p.version||0)+1) + '.',
+    approval: 'Needs approval from ' + who + '.',
+    final: 'Approved — waiting for final print-ready files from ' + who + '.',
+    live: 'Live in the Library (v' + (p.version||1) + '). Final files are ready to download.'
+  }[p.stage] || '';
+  var t = '*' + p.id + ' · ' + p.product + '*\n' + line;
+  if (p.stage !== 'live' && d.label) t += '\nStatus: ' + d.label;
+  if (p.inMarket && p.stage !== 'live') t += '\nIn market: ' + fmtDate(p.inMarket);
+  return t + '\n\nOpen in Artwork Library: ' + appLink(p);
+}
+function waLink(p){ return 'https://wa.me/?text=' + encodeURIComponent(waText(p)); }
+var WA_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>';
+function waBtn(p){ return '<a class="btn btn-wa" href="' + esc(waLink(p)) + '" target="_blank" rel="noopener noreferrer">' + WA_SVG + 'Share on WhatsApp</a>'; }
+function waIcon(p){ return '<a class="btn btn-wa" style="width:48px;padding:0" href="' + esc(waLink(p)) + '" target="_blank" rel="noopener noreferrer" aria-label="Share ' + esc(p.id) + ' on WhatsApp" title="Share on WhatsApp">' + WA_SVG + '</a>'; }
+function files(p, kind){ return (p.files||[]).filter(function(f){ return !kind || f.kind === kind; }); }
+function fileUrl(f){ return f.path ? signedUrl(f.path) : (f.url || ''); }
+function isImg(f){ return /\.(png|jpe?g|webp|gif|svg)$/i.test(f.name||''); }
+function latestArt(p){ var a = files(p,'artwork'); return a.length ? a[a.length-1] : null; }
+
+/* ---------- data (Supabase) ---------- */
+var SB_URL = 'https://vqrtupwczqvvygnrvzmh.supabase.co';
+var SB_KEY = 'sb_publishable_69Zo_JuouutSiJd2OFrAyg_mYmWnCI7';
+var COMPANY = '@idfreshfood.com';
+var sb = window.supabase.createClient(SB_URL, SB_KEY);
+var URLS = {}, URL_PENDING = {}, _rt = null, started = false;
+function scheduleRender(){ clearTimeout(_rt); _rt = setTimeout(render, 40); }
+function signedUrl(path){
+  var c = URLS[path]; if (c && c.exp > Date.now()) return c.url;
+  if (!URL_PENDING[path]){
+    URL_PENDING[path] = true;
+    sb.storage.from('artwork').createSignedUrl(path, 3600).then(function(r){
+      delete URL_PENDING[path];
+      if (r.data && r.data.signedUrl){ URLS[path] = { url: r.data.signedUrl, exp: Date.now() + 50*60000 }; scheduleRender(); }
+    });
+  }
+  return '';
+}
+function fetchDoc(id){
+  return sb.from('projects').select('doc').eq('id', id).maybeSingle().then(function(r){ return r.data && r.data.doc ? Object.assign({}, r.data.doc, { id: id }) : null; }, function(){ return null; });
+}
+function clean(p){ return JSON.parse(JSON.stringify(p)); }
+function save(p){
+  var base = find(p.id); base = base ? JSON.parse(JSON.stringify(base)) : null;
+  p.updatedAt = nowIso();
+  var i = S.projects.findIndex(function(x){ return x.id === p.id; });
+  if (i >= 0) S.projects[i] = p; else S.projects.push(p);
+  render();
+  return fetchDoc(p.id).then(function(srv){ var m = (srv && base && srv.updatedAt !== base.updatedAt) ? mergeDocs(srv, base, p) : p; m.updatedAt = p.updatedAt; return sb.from('projects').upsert({ id: p.id, doc: clean(m) }).then(function(r){ if (!r.error && m !== p) applyMerged(m); return r; }); }).then(function(r){
+    if (r.error){ toast('Couldn’t save — ' + (r.error.message || 'check your connection') + '.'); console.warn(r.error); }
+  });
+}
+function log(p, text){ p.activity = p.activity || []; p.activity.push({ by: S.me, email: S.email || null, text: text, at: nowIso() }); }
+function upsertLocal(row){
+  if (!row || !row.doc) return;
+  var d = Object.assign({}, row.doc, { id: row.id });
+  var i = S.projects.findIndex(function(x){ return x.id === d.id; });
+  if (i >= 0) S.projects[i] = d; else S.projects.push(d);
+}
+function loadAll(){
+  return sb.from('projects').select('id, doc').then(function(r){
+    if (r.error){ toast('Couldn’t load projects — ' + r.error.message); return; }
+    S.projects = (r.data || []).map(function(row){ return Object.assign({}, row.doc, { id: row.id }); });
+    render();
+  });
+}
+function loadSettings(){
+  sb.from('settings').select('doc').eq('id', 'brand').maybeSingle().then(function(r){ if (r.data && r.data.doc){ S.brand = r.data.doc; render(); } });
+}
+function onSession(session){
+  S.session = session;
+  if (!session){ S.mode = 'signedout'; started = false; render(); return; }
+  if (signInMethod(session) === 'password' && !(session.user.user_metadata || {}).pw_changed){ S.email = session.user.email; S.mode = 'setpw-required'; render(); return; }
+  if (started) return;
+  started = true; S.mode = 'live'; S.email = session.user.email; assets = true;
+  loadTeam(); loadAll(); loadSettings();
+  sb.channel('artwork-live')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, function(pl){
+      if (pl.eventType === 'DELETE'){ S.projects = S.projects.filter(function(x){ return x.id !== (pl.old && pl.old.id); }); }
+      else upsertLocal(pl.new);
+      scheduleRender();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'team' }, function(){ loadTeam(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, function(pl){
+      if (pl.new && pl.new.id === 'brand' && pl.new.doc){ S.brand = pl.new.doc; scheduleRender(); }
+    })
+    .subscribe();
+}
+function connect(){
+  sb.auth.getSession().then(function(r){ onSession(r.data && r.data.session); });
+  sb.auth.onAuthStateChange(function(ev, session){ if (ev === 'SIGNED_OUT') location.reload(); else if (ev === 'PASSWORD_RECOVERY'){ S.session = session; S.mode = 'setpw-required'; render(); } else if (session) onSession(session); });
+}
+function aiRemote(canvas, p, info){
+  var b = brand(), c = canvas, scale = Math.min(1, 2000 / Math.max(canvas.width, canvas.height));
+  if (scale < 1){ c = document.createElement('canvas'); c.width = Math.round(canvas.width*scale); c.height = Math.round(canvas.height*scale); c.getContext('2d').drawImage(canvas, 0, 0, c.width, c.height); }
+  var b64 = c.toDataURL('image/jpeg', 0.85).split(',')[1];
+  return sb.functions.invoke('artwork-check', { body: { image: b64, product: p.product, category: p.category, packSize: p.packSize, packType: p.packType,
+    widthMm: info.widthMm, heightMm: info.heightMm, widthPx: c.width, heightPx: c.height, minFontPt: b.minFontPt, notes: b.notes } })
+    .then(function(r){ if (r.error) throw { code: 'function', message: r.error.message }; if (r.data && r.data.error) throw { code: 'function', message: r.data.error }; return r.data; });
+}
+function viewLogin(){
+  if (S.mode === 'connecting') return '<div class="empty"><b>Loading…</b></div>';
+  var logo = '<img src="logo-green.png" alt="iD Fresh Artwork Library" style="height:72px;width:auto;align-self:flex-start;background:#FFFFFF;border-radius:16px;padding:10px 14px">';
+  var wrap = function(inner){ return '<div style="max-width:480px;margin:6vh auto;width:100%">' + inner + '</div>'; };
+  if (S.loginMode === 'link'){
+    return wrap('<form class="panel" data-form="login" data-mode="link" style="padding:32px;gap:16px">' + logo +
+      '<h1 style="font-size:34px">Email me a link</h1><p class="meta" style="margin:0;font-size:16px">We’ll send a one-time sign-in link to your iD Fresh email.</p>' +
+      (S.loginSent ? '<div class="pastel" style="background:var(--mint)"><div class="bd">Check your inbox at <b>' + esc(S.loginSent) + '</b> and click the link. It can take a minute to arrive.</div></div>' : '') +
+      '<label class="f">Work email<input name="email" type="email" required autocomplete="email" placeholder="name@idfreshfood.com"></label>' +
+      '<p class="err" id="login-err" role="alert"></p><button class="btn btn-dark">' + (S.loginSent ? 'Send the link again' : 'Send me a sign-in link') + '</button>' +
+      '<button type="button" class="btn btn-soft" data-act="loginMode" data-v="password">Sign in with password instead</button></form>');
+  }
+  return wrap('<form class="panel" data-form="login" data-mode="password" style="padding:32px;gap:16px">' + logo +
+    '<h1 style="font-size:34px">Sign in</h1><p class="meta" style="margin:0;font-size:16px">Use your iD Fresh work email and password.</p>' +
+    (S.resetSent ? '<div class="pastel" style="background:var(--mint)"><div class="bd">Password reset email sent to <b>' + esc(S.resetSent) + '</b>. Click the link in it to choose a new password.</div></div>' : '') +
+    '<label class="f">Work email<input name="email" type="email" required autocomplete="username" placeholder="name@idfreshfood.com"></label>' +
+    '<label class="f">Password<input name="password" type="password" required autocomplete="current-password" minlength="6"></label>' +
+    '<p class="err" id="login-err" role="alert"></p><button class="btn btn-dark">Sign in</button>' +
+    '<div class="row" style="justify-content:space-between"><button type="button" class="btn btn-soft" data-act="loginMode" data-v="link">Email me a link instead</button>' +
+    '<button type="button" class="btn btn-soft" data-act="forgotPw">Forgot password?</button></div></form>');
+}
+function viewSetPassword(){
+  var first = S.mode === 'setpw-required';
+  return '<div style="max-width:480px;margin:6vh auto;width:100%"><form class="panel" data-form="setpw" style="padding:32px;gap:16px">' +
+    '<h1 style="font-size:32px">' + (first ? 'Choose your own password' : 'Change password') + '</h1>' +
+    '<p class="meta" style="margin:0;font-size:16px">' + (first ? 'You signed in with a starter password. Pick a new one before you continue — at least 10 characters, and not something easy to guess.' : 'At least 10 characters.') + '</p>' +
+    '<label class="f">New password<input name="pw1" type="password" required minlength="10" autocomplete="new-password"></label>' +
+    '<label class="f">Type it again<input name="pw2" type="password" required minlength="10" autocomplete="new-password"></label>' +
+    '<p class="err" id="pw-err" role="alert"></p><button class="btn btn-dark">Save password</button>' +
+    (first ? '<button type="button" class="btn btn-soft" data-act="signout">Sign out</button>' : '<a class="btn btn-soft" href="#/work">Cancel</a>') + '</form></div>';
+}
+function signInMethod(session){
+  try { var p = JSON.parse(atob(String(session.access_token).split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); var a = (p.amr || [])[0]; return a && (a.method || a); } catch(e){ return null; }
+}
+
+function captureInputs(){
+  var a = document.activeElement, keep = {};
+  ['note-in','q','libq'].forEach(function(id){ var el = document.getElementById(id); if (el) keep[id] = el.value; });
+  keep._focus = a && a.id ? a.id : null; keep._sel = a && typeof a.selectionStart === 'number' ? a.selectionStart : null;
+  return keep;
+}
+function restoreInputs(k){
+  if (k['note-in']){ var n = document.getElementById('note-in'); if (n) n.value = k['note-in']; }
+  if (k._focus){ var el = document.getElementById(k._focus); if (el){ el.focus(); if (k._sel != null && el.setSelectionRange) try { el.setSelectionRange(k._sel, k._sel); } catch(e){} } }
+}
+
+/* ---------- safe saving: merge with what's on the server ---------- */
+function mergeDocs(srv, base, mine){
+  if (!srv) return mine;
+  var out = JSON.parse(JSON.stringify(srv)), b0 = base || {};
+  var keys = {}; [srv, b0, mine].forEach(function(o){ Object.keys(o).forEach(function(k){ keys[k] = 1; }); });
+  var arrays = { files: 1, notes: 1, activity: 1, checks: 1 };
+  var sig = function(x){ return JSON.stringify(x); };
+  Object.keys(keys).forEach(function(k){
+    var b = b0[k], m = mine[k];
+    if (arrays[k]){
+      var have = {}, was = {};
+      (out[k] || []).forEach(function(x){ have[sig(x)] = 1; });
+      (b || []).forEach(function(x){ was[sig(x)] = 1; });
+      out[k] = (out[k] || []).slice();
+      (m || []).forEach(function(x){ var s = sig(x); if (!was[s] && !have[s]) out[k].push(x); });
+      if (k === 'checks') out[k] = out[k].slice(-5);
+    } else if (k === 'approvals'){
+      var mm = m || {}, bb = b || {}, ap = Object.assign({}, srv.approvals || {});
+      if (Object.keys(mm).length === 0 && Object.keys(bb).length) ap = {};          // reset by "request changes" / new version
+      else Object.keys(Object.assign({}, bb, mm)).forEach(function(n){ if (bb[n] !== mm[n]){ if (mm[n] === undefined) delete ap[n]; else ap[n] = mm[n]; } });
+      out.approvals = ap;
+    } else if (sig(b) !== sig(m)) out[k] = m;
+  });
+  if (out.stage === 'approval' && (out.approvers || []).length && out.approvers.every(function(a){ return (out.approvals || {})[a] === 'approved'; })){
+    out.stage = 'final'; out.stageSince = nowIso();
+    out.activity = (out.activity || []).concat([{ by: 'System', text: 'all approvals in — final files requested', at: nowIso() }]);
+  }
+  return out;
+}
+function applyMerged(m){
+  var i = S.projects.findIndex(function(x){ return x.id === m.id; });
+  if (i >= 0) S.projects[i] = m; else S.projects.push(m);
+  render();
+}
+function reserveId(id, tries){
+  tries = tries || 0;
+  return fetchDoc(id).then(function(srv){
+    if (!srv || tries > 20) return id;
+    var n = +(String(id).split('-')[1] || 0) + 1;
+    return reserveId('AW-' + n, tries + 1);
+  });
+}
+
+/* ---------- ui helpers ---------- */
+function toast(msg){
+  var r = document.getElementById('toast-root');
+  r.innerHTML = '<div class="toast" role="status">' + esc(msg) + '</div>';
+  clearTimeout(toast._t); toast._t = setTimeout(function(){ r.innerHTML = ''; }, 3200);
+}
+function avatars(names){
+  return '<div class="av">' + names.map(function(n){ return '<span title="' + esc(n) + '" style="background:' + avc(n) + '">' + esc(ini(n)) + '</span>'; }).join('') + '</div>';
+}
+function dueTag(p){ var d = due(p); return d.label ? '<span class="pill p-' + d.tone + '">' + esc(d.label) + '</span>' : ''; }
+function stageBar(p){
+  var cur = stageIdx(p.stage);
+  return '<div class="bar" aria-hidden="true">' + STAGES.map(function(s,i){ return '<i class="' + (i < cur || p.stage==='live' ? 'd' : (i === cur ? 'c' : '')) + '"></i>'; }).join('') + '</div>';
+}
+function thumb(p, big){
+  var a = latestArt(p);
+  var img = a && isImg(a) && fileUrl(a) ? '<img src="' + esc(fileUrl(a)) + '" alt="">' : '';
+  return '<div class="thumb" style="background:' + (CAT_COLOR[p.category] || 'var(--mint)') + '" aria-hidden="true">' + img + '<em>' + esc(p.packSize || p.category || '') + '</em></div>';
+}
+function route(){ var h = location.hash.replace(/^#\/?/, ''); var parts = h.split('/'); return { name: parts[0] || 'work', id: decodeURIComponent(parts[1] || '') }; }
+
+function fillMe(){
+  var sel = document.getElementById('me');
+  sel.innerHTML = (S.me ? '' : '<option value="">Who are you?</option>') + TEAM.map(function(t){ return '<option value="' + esc(t[0]) + '"' + (t[0]===S.me?' selected':'') + '>' + esc(t[0]) + ' · ' + esc(t[1]) + '</option>'; }).join('');
+  sel.disabled = !!S.meLocked;
+  sel.title = S.meLocked ? 'Linked to ' + (S.email || 'your account') + '. Ask an admin to change it.' : 'Pick your name — you only do this once';
+}
+
+
+/* ---------- views ---------- */
+function renderNav(r){
+  var mine = S.projects.filter(function(p){ return waitingOn(p).indexOf(S.me) >= 0; }).length;
+  var items = [['work','My work', mine],['projects','Projects'],['library','Library'],['insights','Insights']].concat(can('team') ? [['team','Team']] : []);
+  document.getElementById('nav').innerHTML = items.map(function(it){
+    var on = r.name === it[0] || (r.name === 'p' && it[0] === 'projects');
+    return '<a href="#/' + it[0] + '"' + (on ? ' aria-current="page"' : '') + '>' + it[1] + (it[2] ? ' <span class="count">' + it[2] + '</span>' : '') + '</a>';
+  }).join('');
+}
+function modeBanner(){
+  if (S.mode === 'connecting') return '<div class="banner">Connecting to shared data…</div>';
+  if (S.mode === 'local') return '<div class="banner">Offline preview — changes are saved in this browser only. Open the published link to work with your team.</div>';
+  return '';
+}
+
+function viewWork(){
+  var me = S.me;
+  var active = S.projects.filter(function(p){ return p.stage !== 'live'; });
+  var q = S.q.trim().toLowerCase();
+  var defs = [['mine','Needs me'],['all','All active'],['late','Late'],['approval','In approval'],['final','Final files']];
+  function test(p, f){
+    if (f === 'mine') return waitingOn(p).indexOf(me) >= 0;
+    if (f === 'late') return due(p).late;
+    if (f === 'approval' || f === 'final') return p.stage === f;
+    return true;
+  }
+  var counts = {}; defs.forEach(function(d){ counts[d[0]] = active.filter(function(p){ return test(p, d[0]); }).length; });
+  var list = active.filter(function(p){ return test(p, S.filter) && (!q || (p.product + ' ' + p.id + ' ' + p.requestedBy + ' ' + waitingOn(p).join(' ')).toLowerCase().indexOf(q) >= 0); })
+    .sort(function(a,b){ return due(b).days - due(a).days || String(a.stageSince).localeCompare(String(b.stageSince)); });
+  var mine = active.filter(function(p){ return waitingOn(p).indexOf(me) >= 0; });
+  var lateMine = mine.filter(function(p){ return due(p).late; }).length;
+  var hr = new Date().getHours(), greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+  var html = modeBanner();
+  html += '<div class="row" style="align-items:flex-end"><div><h1>' + greet + (me ? ', ' + esc(first(me)) : '') + '</h1><p class="sub">' +
+    (me ? (mine.length ? mine.length + (mine.length===1?' pack needs':' packs need') + ' you' + (lateMine ? ' — ' + lateMine + ' already late.' : '.') : 'You’re all caught up.') : 'Pick your name at the top right — you only do this once.') + '</p></div>' +
+    '<div class="tiles"><div class="tile" style="background:var(--sky)"><b>' + mine.length + '</b><span>Needs me</span></div>' +
+    '<div class="tile" style="background:var(--peach)"><b>' + active.filter(function(p){ return due(p).late; }).length + '</b><span>Late</span></div>' +
+    '<div class="tile dash"><b>' + active.length + '</b><span>Active</span></div></div></div>';
+  html += '<div class="split"><div class="main">';
+  html += '<div class="row"><div class="chips" role="tablist" aria-label="Filter">' + defs.map(function(d){ return '<button class="chip" role="tab" aria-selected="' + (S.filter===d[0]) + '" data-act="filter" data-v="' + d[0] + '">' + d[1] + ' <span class="n">' + counts[d[0]] + '</span></button>'; }).join('') + '</div>' +
+    '<label class="search"><span class="sr">Search</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="Search pack, AW number, person" value="' + esc(S.q) + '"></label></div>';
+  if (!list.length){
+    html += S.projects.length === 0 && S.mode !== 'connecting'
+      ? '<div class="empty"><b>No projects yet</b><span class="meta">Start your first artwork request — it takes about two minutes.</span><button class="btn btn-dark" data-act="new">New request</button></div>'
+      : (S.filter === 'mine' && !q ? '<div class="empty"><b>You’re all caught up</b><span class="meta">Nothing needs you right now. New approvals and handovers will show up here.</span><a class="btn btn-soft" href="#/projects">Browse projects</a></div>'
+      : '<div class="empty"><b>Nothing matches</b><span class="meta">Try another name or AW number, or switch filter.</span></div>');
+  } else {
+    html += '<div class="list">' + list.map(function(p, i){
+      var w = waitingOn(p), isMine = w.indexOf(me) >= 0;
+      return '<div class="card' + (i===0 && isMine ? ' hot' : '') + '">' + thumb(p) +
+        '<div style="flex:1 1 220px;min-width:0"><a class="title" href="#/p/' + encodeURIComponent(p.id) + '">' + esc(p.product) + '</a><div class="meta">' + esc(p.id) + ' · ' + esc(p.category||'') + ' · requested by ' + esc(p.requestedBy||'') + '</div></div>' +
+        '<div style="flex:1 1 180px;display:flex;flex-direction:column;gap:8px">' + stageBar(p) + '<b style="font-size:14px">' + esc(stageLabel(p)) + '</b></div>' +
+        avatars(w) + dueTag(p) +
+        '<div style="flex:0 0 auto;min-width:170px;display:flex;justify-content:flex-end;align-items:center;gap:8px">' + waIcon(p) +
+        (isMine ? '<a class="btn btn-dark" href="#/p/' + encodeURIComponent(p.id) + '">' + esc(actionFor(p)) + ' ↗</a>'
+          : (w.length ? '<button class="btn btn-soft" data-act="nudge" data-id="' + esc(p.id) + '">Nudge ' + esc(first(w[0])) + '</button>' : '')) +
+        '</div></div>';
+    }).join('') + '</div>';
+  }
+  html += '</div><aside class="side" aria-label="Today"><h2 style="font-size:30px">Today</h2>' + todayCards() + '</aside></div>';
+  return html;
+}
+function todayCards(){
+  var me = S.me, out = '';
+  var appr = S.projects.filter(function(p){ return p.stage==='approval' && waitingOn(p).indexOf(me)>=0; });
+  if (appr.length){ var a = appr[0]; out += '<div class="pastel" style="background:var(--butter)"><div class="hd"><span>Approval waiting</span><span>' + esc(due(a).label) + '</span></div><div class="bd">' + esc(a.product) + ' needs your sign-off.' + (appr.length>1 ? ' Plus ' + (appr.length-1) + ' more.' : '') + '</div><a class="btn btn-white" href="#/p/' + encodeURIComponent(a.id) + '">Review & approve</a></div>'; }
+  var notes = []; S.projects.forEach(function(p){ (p.notes||[]).forEach(function(n){ if (n.kind==='change' || n.kind==='comment') notes.push({p:p,n:n}); }); });
+  notes.sort(function(x,y){ return String(y.n.at).localeCompare(String(x.n.at)); });
+  if (notes[0]){ var n = notes[0]; out += '<div class="pastel" style="background:var(--lilac)"><div class="hd"><span>' + (n.n.kind==='change'?'Change requested':'Latest note') + '</span><span>' + esc(n.p.id) + '</span></div><div class="bd"><b>' + esc(first(n.n.by)) + ':</b> ' + esc(n.n.text) + '</div></div>'; }
+  var fin = S.projects.filter(function(p){ return p.stage==='final'; });
+  if (fin.length){ out += '<div class="pastel" style="background:var(--mint)"><div class="hd"><span>Final files</span><span>' + fin.length + ' packs</span></div><div class="bd">Approved and waiting for print-ready files. Hand them over so the Library and printers get the right version.</div></div>'; }
+  var soon = S.projects.filter(function(p){ return p.stage!=='live' && p.inMarket; }).sort(function(a,b){ return String(a.inMarket).localeCompare(String(b.inMarket)); })[0];
+  if (soon){ var dd = dayDiff(new Date(), new Date(soon.inMarket)); out += '<div class="pastel" style="background:var(--sky)"><div class="hd"><span>In market next</span><span>' + fmtDate(soon.inMarket) + '</span></div><div class="bd">' + esc(soon.product) + (dd >= 0 ? ' hits shelves in ' + dd + ' days.' : ' was due in market ' + (-dd) + ' days ago.') + ' Now at: ' + esc(stageLabel(soon)) + '.</div></div>'; }
+  return out || '<div class="empty"><b>Quiet day</b><span class="meta">Nothing urgent across the team.</span></div>';
+}
+
+function viewProjects(){
+  var q = S.q.trim().toLowerCase();
+  var list = S.projects.filter(function(p){ return !q || (p.product+' '+p.id+' '+p.category+' '+p.requestedBy).toLowerCase().indexOf(q)>=0; })
+    .sort(function(a,b){ return String(b.createdAt).localeCompare(String(a.createdAt)); });
+  var html = modeBanner() + '<div class="row" style="align-items:flex-end"><div><h1>Projects</h1><p class="sub">Every artwork request, newest first.</p></div>' +
+    '<label class="search"><span class="sr">Search projects</span><input id="q" type="search" placeholder="Search projects" value="' + esc(S.q) + '"></label></div>';
+  if (!list.length) return html + '<div class="empty"><b>No projects found</b><button class="btn btn-dark" data-act="new">New request</button></div>';
+  return html + '<div class="list">' + list.map(function(p){
+    return '<div class="card">' + thumb(p) + '<div style="flex:1 1 220px;min-width:0"><a class="title" href="#/p/' + encodeURIComponent(p.id) + '">' + esc(p.product) + '</a><div class="meta">' + esc(p.id) + ' · ' + esc(p.brand||'') + ' · created ' + fmtDate(p.createdAt) + ' by ' + esc(p.requestedBy||'') + '</div></div>' +
+      '<div style="flex:1 1 180px;display:flex;flex-direction:column;gap:8px">' + stageBar(p) + '<b style="font-size:14px">' + esc(stageLabel(p)) + '</b></div>' + avatars(waitingOn(p)) + dueTag(p) +
+      '<a class="btn btn-soft" href="#/p/' + encodeURIComponent(p.id) + '">Open</a></div>';
+  }).join('') + '</div>';
+}
+
+function viewProject(id){
+  var p = S.projects.find(function(x){ return x.id === id; });
+  if (!p) return modeBanner() + '<div class="empty"><b>' + (S.mode==='connecting' ? 'Loading project…' : 'Project not found') + '</b><a class="btn btn-soft" href="#/projects">All projects</a></div>';
+  var cur = stageIdx(p.stage), d = due(p), me = S.me, w = waitingOn(p);
+  var html = modeBanner();
+  html += '<div class="row" style="align-items:flex-end"><div style="display:flex;flex-direction:column;gap:8px"><a href="#/work" class="meta" style="text-decoration:none;font-weight:700">← My work</a><h1>' + esc(p.product) + '</h1><div class="chips">' +
+    '<span class="pill p-ok">' + esc(p.id) + '</span><span class="pill p-ok">' + esc(p.category||'') + (p.packType ? ' · ' + esc(p.packType) : '') + '</span><span class="pill p-ok">Requested by ' + esc(p.requestedBy||'') + '</span>' +
+    (p.inMarket ? '<span class="pill" style="background:var(--sky)">In market ' + fmtDate(p.inMarket) + '</span>' : '') + '</div></div>' + waBtn(p) + '</div>';
+  html += '<ol class="stages" aria-label="Stages">' + STAGES.map(function(s,i){
+    var done = i < cur || p.stage==='live', isCur = i === cur && p.stage !== 'live';
+    var meta = isCur ? (w.length ? 'Waiting on ' + w.map(first).join(', ') : '') : (done ? 'Done' : 'Next');
+    if (s[0]==='live' && p.stage==='live') meta = 'Since ' + fmtDate(p.stageSince);
+    return '<li class="' + (done?'done':isCur?'cur':'') + '"' + (isCur?' aria-current="step"':'') + '><span class="dot">' + (done ? '✓' : (i+1)) + '</span><span><b>' + s[1] + '</b><small>' + esc(meta) + '</small></span></li>';
+  }).join('') + '</ol>';
+  var art = latestArt(p);
+  var preview = !art ? '<div style="text-align:center;display:flex;flex-direction:column;gap:6px"><b style="font-size:20px">No artwork yet</b><span style="color:#4F4F4F">' + esc(p.designer||'The designer') + ' will upload v1 here.</span></div>'
+    : (isImg(art) && fileUrl(art) ? '<img src="' + esc(fileUrl(art)) + '" alt="' + esc(p.product) + ' artwork v' + esc(art.version) + '">'
+    : '<div style="text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center"><span class="ext" style="width:72px;height:72px;font-size:16px;background:var(--peach)">' + esc((art.name.split('.').pop()||'FILE').toUpperCase().slice(0,4)) + '</span><b style="font-size:18px">' + esc(art.name) + '</b>' +
+      (fileUrl(art) ? '<button class="btn btn-dark" data-act="dl" data-url="' + esc(fileUrl(art)) + '" data-name="' + esc(art.name) + '">Download artwork</button>' : '<span style="color:#4F4F4F">File stored outside the Library</span>') + '</div>');
+  html += '<div class="split"><div class="main"><section class="art" aria-label="Artwork"><div class="row" style="padding:4px 6px 0"><div><h2>Packaging artwork</h2><div style="font-size:14px;font-weight:600">' + (art ? 'v' + esc(art.version) + ' · ' + esc(art.name) + ' · ' + esc(first(art.by)) + ', ' + fmtDate(art.at) : 'Waiting for first upload') + '</div></div></div><div class="stage-box' + (art ? ' has-art' : '') + '">' + preview + '</div></section>';
+  html += '<section class="panel"><h2>Files & versions</h2>' + (files(p).length ? files(p).slice().reverse().map(function(f){
+    var ext = (f.name.split('.').pop()||'').toUpperCase().slice(0,4);
+    var bg = f.kind==='source' ? 'var(--mint)' : f.kind==='artwork' ? 'var(--lilac)' : 'var(--sky)';
+    return '<div class="fileline"><span class="ext" style="background:' + bg + '">' + esc(ext) + '</span><span style="flex:1 1 220px;min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis">' + esc(f.name) + '</b><span class="meta">' + esc({artwork:'Artwork',source:'Print-ready source',keyline:'Key line drawing',brief:'Brief'}[f.kind]||f.kind) + (f.version ? ' · v' + esc(f.version) : '') + ' · ' + esc(first(f.by)) + ', ' + fmtDate(f.at) + '</span></span>' +
+      (fileUrl(f) ? '<button class="btn btn-soft" data-act="dl" data-url="' + esc(fileUrl(f)) + '" data-name="' + esc(f.name) + '">Download</button>' : '') + '</div>';
+  }).join('') : '<p class="meta" style="margin:0">No files yet.</p>') +
+    (can('upload') ? '<label class="btn btn-soft" style="align-self:flex-start;cursor:pointer">Add brief or key line<input type="file" class="sr" data-up="keyline" data-id="' + esc(p.id) + '"></label>' : '') + '</section>' + checkPanel(p) + '</div>';
+  html += '<aside class="side">' + nextCard(p) + approvalsPanel(p) + notesPanel(p) + detailsPanel(p) + '</aside></div>';
+  return html;
+}
+function nextCard(p){
+  var me = S.me, w = waitingOn(p), mine = w.indexOf(me) >= 0, d = due(p);
+  var lateTag = d.label && p.stage!=='live' ? '<span class="pill p-' + d.tone + '">' + esc(d.label) + '</span>' : '';
+  var head = function(t){ return '<div class="row"><span class="k">' + (mine ? 'Your next step' : 'Next step') + '</span>' + lateTag + '</div><div class="t">' + t + '</div>'; };
+  var up = function(kind, label){ return assets || S.mode !== 'live'
+    ? '<label class="drop"><b>' + label + '</b><span style="font-size:13px">' + (kind==='source' ? '.ai, .pdf, .zip' : '.pdf, .png, .jpg') + ' · up to 50 MB</span><input type="file" data-up="' + kind + '" data-id="' + esc(p.id) + '"></label>'
+    : '<div class="drop"><b>File uploads aren’t available in this view</b><span style="font-size:13px">Open the Library from claude.ai to upload.</span></div>'; };
+  if (p.stage === 'live') return '<div class="next" style="background:var(--mint)"><span class="k">Done</span><div class="t">Live in the Library</div><div>Print-ready files handed over on ' + fmtDate(p.stageSince) + '.</div><a class="btn btn-dark" href="#/library">Open Library</a></div>';
+  if (!mine) return '<div class="next" style="background:var(--card);color:var(--ink)">' + head('Waiting on ' + esc(w.join(', '))) + '<div class="meta">' + esc(stageLabel(p)) + '. You’ll see it in My work when it needs you.</div>' + (w.length ? '<button class="btn btn-dark" data-act="nudge" data-id="' + esc(p.id) + '">Nudge ' + esc(first(w[0])) + '</button>' : '') + waBtn(p) + '</div>';
+  if (p.stage === 'brief') return '<div class="next">' + head('Finish the brief') + '<div>Check the details below, attach a brief or key line if you have one, then send it to ' + esc(p.designer||'design') + '.</div><button class="btn btn-dark" data-act="toDesign" data-id="' + esc(p.id) + '">Send to design</button></div>';
+  if (p.stage === 'design'){
+    var pending = files(p,'artwork').some(function(f){ return f.version === (p.version||0)+1; });
+    return '<div class="next">' + head('Upload artwork v' + esc((parseInt(p.version, 10) || 0) + 1)) + '<div>' + ((p.version||0) ? 'Address the requested changes, then upload the new version.' : 'Upload the first artwork for review.') + '</div>' + up('artwork', pending ? 'Replace this version' : 'Drop artwork here or browse') +
+      '<button class="btn btn-dark" data-act="toApproval" data-id="' + esc(p.id) + '"' + (pending ? '' : ' disabled') + '>Send for approval</button></div>';
+  }
+  if (p.stage === 'approval') return '<div class="next">' + head('Approve artwork v' + esc(parseInt(p.version, 10) || 1)) + '<div>Check what you’re responsible for as ' + esc(DEPT[me]||'approver') + '. If something needs fixing, request changes with a reason.</div>' +
+    '<button class="btn btn-dark" data-act="approve" data-id="' + esc(p.id) + '">Approve artwork</button><button class="btn btn-white" data-act="changes" data-id="' + esc(p.id) + '">Request changes</button></div>';
+  if (p.stage === 'final'){
+    var has = files(p,'source').some(function(f){ return f.version === (p.version||1); });
+    return '<div class="next">' + head('Hand over the final files') + '<div>All approvers signed off. Upload the print-ready source so the printer and Library get the right version.</div>' + up('source', has ? 'Add another file' : 'Drop final files here or browse') +
+      '<button class="btn btn-dark" data-act="handover" data-id="' + esc(p.id) + '"' + (has ? '' : ' disabled') + '>Hand over files</button></div>';
+  }
+  return '';
+}
+function approvalsPanel(p){
+  var ap = p.approvers || [];
+  var n = ap.filter(function(a){ return (p.approvals||{})[a]==='approved'; }).length;
+  return '<div class="panel"><div class="row"><h2>Approvals</h2><span class="pill" style="background:var(--mint)">' + n + ' of ' + ap.length + ' · all must approve</span></div>' +
+    ap.map(function(a){ var s = (p.approvals||{})[a]; return '<div class="person"><span class="ini" style="background:' + avc(a) + '">' + esc(ini(a)) + '</span><span style="flex:1"><b style="display:block">' + esc(a) + '</b><span class="meta">' + esc(DEPT[a]||'') + '</span></span><b style="font-size:13px">' + (s==='approved' ? 'Approved' : s==='changes' ? 'Asked for changes' : (p.stage==='approval' ? 'Reviewing' : '—')) + '</b></div>'; }).join('') + '</div>';
+}
+function notesPanel(p){
+  var feed = [];
+  (p.notes||[]).forEach(function(n){ feed.push({ at:n.at, html:'<b>' + esc(n.by) + '</b> ' + (n.kind==='change' ? 'requested changes · <i>' + esc(n.reason||'') + '</i>: ' : '') + esc(n.text) }); });
+  (p.activity||[]).forEach(function(a){ feed.push({ at:a.at, html:'<b' + (a.email ? ' title="' + esc(a.email) + '"' : '') + '>' + esc(a.by||'System') + '</b> ' + esc(a.text) }); });
+  feed.sort(function(a,b){ return String(b.at).localeCompare(String(a.at)); });
+  return '<div class="panel"><h2>Notes & activity</h2>' + (can('note') ? '' : '<p class="meta" style="margin:0">View only.</p>') + '<form class="compose" data-form="note"' + (can('note') ? '' : ' hidden') + ' data-id="' + esc(p.id) + '"><label class="sr" for="note-in">Write a note</label><input id="note-in" name="t" placeholder="Write a note for the team" autocomplete="off"><button class="btn btn-lime" style="min-height:44px">Send</button></form>' +
+    '<ol class="feed">' + (feed.length ? feed.slice(0,14).map(function(f){ return '<li><span class="b"></span><span>' + f.html + '<small>' + fmtWhen(f.at) + '</small></span></li>'; }).join('') : '<li class="meta">No activity yet.</li>') + '</ol></div>';
+}
+function detailsPanel(p){
+  var rows = [['Brand',p.brand],['Category',p.category],['Pack size',p.packSize],['Pack type',p.packType],['FG code',p.fgCode],['Print size',p.printWmm && p.printHmm ? p.printWmm + ' \u00d7 ' + p.printHmm + ' mm' : ''],['Designer',p.designer],['Created',fmtDate(p.createdAt)],['Brief',p.brief]];
+  return '<div class="panel"><h2>Details</h2>' + rows.map(function(r){ return '<div style="display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:8px"><span class="meta">' + r[0] + '</span><b style="text-align:right;white-space:pre-line">' + (r[1] ? esc(r[1]) : '<span class="meta">Not set</span>') + '</b></div>'; }).join('') + '</div>';
+}
+
+function viewLibrary(){
+  var live = S.projects.filter(function(p){ return p.stage === 'live'; });
+  var q = S.libq.trim().toLowerCase();
+  var cats = ['All'].concat(CATS.filter(function(c){ return live.some(function(p){ return p.category===c; }); }));
+  var list = live.filter(function(p){ return (S.lib==='All' || p.category===S.lib) && (!q || (p.product+' '+p.id+' '+(p.fgCode||'')).toLowerCase().indexOf(q)>=0); });
+  var ready = live.filter(function(p){ return files(p,'source').length; }).length;
+  var html = modeBanner() + '<div class="row" style="align-items:flex-end"><div><h1>Library</h1><p class="sub">The latest approved version of every pack. Always print-ready, never “final_final_v3”.</p></div>' +
+    '<div class="tiles"><div class="tile" style="background:var(--mint)"><b>' + ready + '</b><span>Print-ready</span></div><div class="tile" style="background:var(--rose)"><b>' + (live.length - ready) + '</b><span>Source missing</span></div></div></div>';
+  html += '<div class="row"><div class="chips" role="tablist" aria-label="Category">' + cats.map(function(c){ return '<button class="chip" role="tab" aria-selected="' + (S.lib===c) + '" data-act="lib" data-v="' + esc(c) + '">' + esc(c) + '</button>'; }).join('') + '</div>' +
+    '<label class="search"><span class="sr">Search the Library</span><input id="libq" type="search" placeholder="Search pack, AW number, FG code" value="' + esc(S.libq) + '"></label></div>';
+  if (!list.length) return html + '<div class="empty"><b>' + (live.length ? 'No packs found' : 'The Library is empty') + '</b><span class="meta">' + (live.length ? 'Try another name, or pick “All”.' : 'Packs land here when their final files are handed over.') + '</span></div>';
+  return html + '<div class="grid">' + list.map(function(p){
+    var a = latestArt(p), src = files(p,'source');
+    var img = a && isImg(a) && fileUrl(a) ? '<img src="' + esc(fileUrl(a)) + '" alt="">' : '';
+    var dl = src.filter(fileUrl)[0];
+    return '<article class="lib"><div class="pv" style="background:' + (CAT_COLOR[p.category]||'var(--mint)') + '">' + img + '<div class="row"><span class="tag">v' + esc(p.version||1) + '</span><span class="tag dark">' + esc(p.packType||'Pack') + '</span></div><div style="font-size:22px;font-weight:800;line-height:1.1">' + (img ? '' : esc(p.product.replace(/^iD Fresh\s*/i,''))) + '</div></div>' +
+      '<div style="padding:0 8px"><a class="title" style="font-size:17px" href="#/p/' + encodeURIComponent(p.id) + '">' + esc(p.product) + '</a><div class="meta">' + esc(p.category||'') + ' · live since ' + fmtDate(p.stageSince) + '</div></div>' +
+      '<div class="row" style="padding:0 4px 4px 8px"><span class="pill ' + (src.length ? 'p-live' : 'p-late') + '">' + (src.length ? 'Print-ready' : 'Source missing') + '</span><span style="display:flex;gap:6px">' + waIcon(p) +
+      (dl ? '<button class="btn btn-dark" style="min-height:44px;padding:0 16px" data-act="dl" data-url="' + esc(fileUrl(dl)) + '" data-name="' + esc(dl.name) + '" aria-label="Download source for ' + esc(p.product) + '">Download</button>' : '') + '</span></div></article>';
+  }).join('') + '</div>';
+}
+
+function viewInsights(){
+  var P = S.projects, open = P.filter(function(p){ return p.stage!=='live'; }), late = open.filter(function(p){ return due(p).late; });
+  var byStage = STAGES.map(function(s){ return [s[1], P.filter(function(p){ return p.stage===s[0]; }).length]; });
+  var maxS = Math.max.apply(null, byStage.map(function(x){ return x[1]; }).concat([1]));
+  var holding = {}; open.forEach(function(p){ waitingOn(p).forEach(function(n){ holding[n] = (holding[n]||0)+1; }); });
+  var hold = Object.keys(holding).map(function(k){ return [k, holding[k]]; }).sort(function(a,b){ return b[1]-a[1]; }).slice(0,8);
+  var maxH = Math.max.apply(null, hold.map(function(x){ return x[1]; }).concat([1]));
+  var reasons = {}; P.forEach(function(p){ (p.notes||[]).forEach(function(n){ if (n.kind==='change') reasons[n.reason||'Other'] = (reasons[n.reason||'Other']||0)+1; }); });
+  var rs = Object.keys(reasons).map(function(k){ return [k, reasons[k]]; }).sort(function(a,b){ return b[1]-a[1]; });
+  var withChanges = P.filter(function(p){ return (p.notes||[]).some(function(n){ return n.kind==='change'; }); }).length;
+  var approvedAny = P.filter(function(p){ return stageIdx(p.stage) >= 3; });
+  var rft = approvedAny.filter(function(p){ return !(p.notes||[]).some(function(n){ return n.kind==='change'; }); }).length;
+  function bars(rows, max){ return '<div class="bars">' + rows.map(function(r){ return '<div class="hb"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(r[0]) + '</span><span class="tr"><i style="width:' + (r[1]/max*100).toFixed(1) + '%"></i></span><span>' + r[1] + '</span></div>'; }).join('') + '</div>'; }
+  return modeBanner() + '<div><h1>Insights</h1><p class="sub">Where artwork waits, and why it goes round again. Live from this Library.</p></div>' +
+    '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">' +
+    '<div class="tile" style="background:var(--sky);text-align:left;padding:20px"><b>' + P.length + '</b><span>Projects</span></div>' +
+    '<div class="tile" style="background:var(--butter);text-align:left;padding:20px"><b>' + open.length + '</b><span>Still open</span></div>' +
+    '<div class="tile" style="background:var(--peach);text-align:left;padding:20px"><b>' + late.length + '</b><span>Late right now</span></div>' +
+    '<div class="tile" style="background:var(--mint);text-align:left;padding:20px"><b>' + (approvedAny.length ? Math.round(rft/approvedAny.length*100) + '%' : '—') + '</b><span>Approved right first time</span></div></div>' +
+    '<div class="split"><div class="main"><section class="panel"><h2>Projects by stage</h2>' + bars(byStage, maxS) + '</section>' +
+    '<section class="panel"><h2>Who’s holding work right now</h2>' + (hold.length ? bars(hold, maxH) : '<p class="meta" style="margin:0">Nobody — everything is moving.</p>') + '</section></div>' +
+    '<aside class="side"><section class="pastel" style="background:var(--lilac)"><div class="hd"><span>Why changes were requested</span><span>' + withChanges + ' projects</span></div><div class="bd">' + (rs.length ? rs.map(function(r){ return '<div style="display:flex;justify-content:space-between;padding:4px 0"><span>' + esc(r[0]) + '</span><b>' + r[1] + '</b></div>'; }).join('') : 'No change requests yet. Reasons will show up here as approvers use “Request changes”.') + '</div></section>' +
+    '<section class="panel" style="background:#111;color:#FFF"><span style="font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#D9F26B">Baseline · ManageArtworks, 22 Oct 2026</span><div style="font-size:15px;line-height:1.55;color:#E0E0E0">294 projects, 222 still open. 523 of 601 open tasks overdue (87%). 0 of 2 tracked components right first time. 1 of 224 files versioned. Use these to measure the new Library against.</div></section></aside></div>';
+}
+
+/* ---------- AI artwork check ---------- */
+var CHECKS = { all: 'Full check', spelling: 'Spelling', fonts: 'Fonts', colours: 'Colours', barcode: 'Barcode', qr: 'QR link', resolution: 'Resolution' };
+var CHECK_HINT = { spelling: 'UK English dictionary + AI proofread', fonts: 'Exact PDF sizes + minimum size', colours: 'Brand palette, HEX, RGB, CMYK', barcode: 'Reads the bars, checks the digit', qr: 'Decodes the link, checks the domain', resolution: '300 DPI for print' };
+var ST_LABEL = { pass: 'Looks good', warn: 'Check', fail: 'Fix needed', na: 'Not run' };
+function safeSt(s){ return (typeof s === 'string' && Object.prototype.hasOwnProperty.call(ST_LABEL, s)) ? s : 'na'; }
+function stTag(s){ s = safeSt(s); return '<span class="st st-' + s + '">' + ST_LABEL[s] + '</span>'; }
+function worstSt(){ var o = { na: -1, pass: 0, warn: 1, fail: 2 }, best = 'na'; [].slice.call(arguments).forEach(function(x){ var s = safeSt(x && x.status); if (o[s] > o[best]) best = s; }); return best; }
+function checkPanel(p){
+  var art = latestArt(p), run = S.checking[p.id];
+  var last = (p.checks || []).slice(-1)[0], r = (last && last.results) || {};
+  var sec = { spelling: worstSt(r.dict, r.spelling), fonts: worstSt(r.fontsPdf, r.fonts), colours: worstSt(r.colours), barcode: worstSt(r.barcode), qr: worstSt(r.qr), resolution: worstSt(r.resolution) };
+  var dis = (!art || run || (typeof can === 'function' && !can('check'))) ? ' disabled' : '';
+  var bar = '<div class="checkbar" role="group" aria-label="Run an artwork check">' + ['spelling','fonts','colours','barcode','qr','resolution'].map(function(k){
+      var on = run && (run.only === k || run.only === 'all');
+      return '<button class="chkbtn' + (on ? ' busy' : '') + '" data-act="check" data-only="' + k + '" data-id="' + esc(p.id) + '"' + dis + '>' +
+        '<span class="dot dot-' + sec[k] + '" aria-hidden="true"></span><span class="chk-t"><b>' + CHECKS[k] + '</b><small>' + (on ? 'Checking…' : (sec[k] === 'na' ? CHECK_HINT[k] : ST_LABEL[sec[k]])) + '</small></span>' +
+        '<span class="sr"> — ' + ST_LABEL[sec[k]] + '</span></button>';
+    }).join('') + '</div>';
+  var head = '<div class="row"><div><h2>Artwork check</h2><div class="meta">' + (art ? 'Checks run on v' + esc(art.version) + ' · ' + esc(art.name) : 'Upload artwork to run checks') + '</div></div>' +
+    '<div class="chips">' + (can('settings') ? '<button class="btn btn-soft" data-act="settings">Check settings</button>' : '') +
+    (art ? '<button class="btn btn-dark" data-act="check" data-only="all" data-id="' + esc(p.id) + '"' + dis + '>' + (run && run.only === 'all' ? esc(run.label) : 'Run all checks') + '</button>' : '') + '</div></div>';
+  var status = run ? '<div class="banner" role="status">' + esc(run.label) + '</div>' : '';
+  if (!art) return '<section class="panel" id="checks">' + head + bar + '<p class="meta" style="margin:0">Upload artwork, then pick a check — or run them all.</p></section>';
+  if (!last) return '<section class="panel" id="checks">' + head + bar + status + '<p class="meta" style="margin:0">Tap a check to run just that one, or <b>Run all checks</b> before sending for approval.</p></section>';
+  var stale = last.version !== art.version ? '<div class="banner">These results are for v' + esc(last.version) + '. The latest artwork is v' + esc(art.version) + ' — run the checks again.</div>' : '';
+  function block(title, st, items){ return '<div class="chk"><div class="hdr"><span>' + title + '</span>' + stTag(st) + '</div>' + (items && items.length ? '<ul>' + items.join('') + '</ul>' : '') + '</div>'; }
+  function msg(x){ return x && x.message ? ['<li class="meta">' + esc(x.message) + '</li>'] : []; }
+  function hexOk(h){ return /^#[0-9a-f]{6}$/i.test(String(h)) ? String(h) : 'transparent'; }
+  var sp = r.spelling, fo = r.fonts, co = r.colours, bc = r.barcode, qr = r.qr, rs = r.resolution, out = '';
+  if (r.dict) out += block('Spelling · UK dictionary', r.dict.status, (r.dict.items||[]).map(function(i){ return '<li><b>' + esc(i.found) + '</b> → ' + esc(i.suggest) + ' <span class="meta">— ' + esc(i.note) + '</span></li>'; }).concat(msg(r.dict)));
+  if (sp) out += block('Spelling · AI proofread (UK English)', sp.status, (sp.items||[]).map(function(i){ return '<li><b>' + esc(i.found) + '</b> → ' + esc(i.suggest) + (i.note ? ' <span class="meta">— ' + esc(i.note) + '</span>' : '') + '</li>'; }).concat(msg(sp)));
+  if (r.fontsPdf) out += block('Fonts · exact sizes from the PDF (min ' + esc(r.fontsPdf.minPt || brand().minFontPt) + ' pt)', r.fontsPdf.status,
+      (r.fontsPdf.items||[]).map(function(i){ return '<li>“' + esc(String(i.text).length > 60 ? String(i.text).slice(0, 60) + '…' : i.text) + '” — <b>' + esc(i.size) + ' pt</b>' + (i.font ? ' <span class="meta">' + esc(i.font) + '</span>' : '') + '</li>'; })
+      .concat((r.fontsPdf.fonts||[]).map(function(f){ return '<li class="meta">Font: ' + esc(f.name) + ' — ' + esc(f.min) + (f.max !== f.min ? '–' + esc(f.max) : '') + ' pt</li>'; })).concat(msg(r.fontsPdf)));
+  if (fo) out += block('Fonts · AI size estimate (min ' + esc(fo.minPt || brand().minFontPt) + ' pt)', fo.status, (fo.items||[]).map(function(i){ return '<li>“' + esc(i.text) + '” — about ' + esc(i.estSizePt) + ' pt' + (i.note ? ' <span class="meta">— ' + esc(i.note) + '</span>' : '') + '</li>'; }).concat(msg(fo)));
+  if (co) out += block('Colours · brand palette', co.status, (co.items||[]).map(function(i){ var h = hexOk(i.hex); return '<li><span class="sw" style="background:' + h + '"></span><b>' + esc(i.hex) + '</b> · ' + esc(rgbStr(h)) + ' · ' + esc(cmykStr(h)) + ' · ' + esc(i.share) + '% of artwork' + (i.match ? ' · nearest ' + esc(i.match) + ' (ΔE ' + esc(i.de) + ')' : '') + (i.note ? ' <span class="meta">— ' + esc(i.note) + '</span>' : '') + '</li>'; }).concat(msg(co)));
+  if (bc) out += block('Barcode', bc.status, [bc.digits ? '<li>' + esc(bc.type || 'Barcode') + ': <b>' + esc(bc.digits) + '</b> — ' + esc(bc.checkDigit || '') + '</li>' : ''].filter(Boolean).concat(msg(bc)));
+  if (qr) out += block('QR link', qr.status, [qr.url ? '<li>' + (/^https?:\/\//i.test(String(qr.url)) ? '<a href="' + esc(qr.url) + '" target="_blank" rel="noopener noreferrer">' + esc(qr.url) + '</a>' : esc(qr.url)) + '</li>' : ''].filter(Boolean).concat(msg(qr)));
+  if (rs) out += block('Resolution · 300 DPI', rs.status, (rs.items||[]).map(function(t){ return '<li>' + esc(t).replace(/&lt;(\/?)b&gt;/g, '<$1b>') + '</li>'; }).concat(msg(rs)));
+  if ((r.other||[]).length) out += block('Other things to look at', 'warn', r.other.map(function(o){ return '<li>' + esc(o) + '</li>'; }));
+  return '<section class="panel" id="checks">' + head + bar + status + stale +
+    (r.summary ? '<div class="pastel" style="background:var(--lilac)"><div class="hd"><span>Summary</span><span>v' + esc(last.version) + ' · ' + esc(first(last.by)) + ', ' + fmtWhen(last.at) + '</span></div><div class="bd">' + esc(r.summary) + '</div></div>' : '<div class="meta">Last run by ' + esc(first(last.by)) + ', ' + fmtWhen(last.at) + '</div>') +
+    out + '<p class="meta" style="margin:0">CMYK values are a screen-to-print estimate — match against the printer’s proof. AI can miss things: approvers still own the final check.</p></section>';
+}
+
+function loadScript(src){ return new Promise(function(res, rej){ var s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = function(){ rej(new Error('load')); }; document.head.appendChild(s); }); }
+var PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+function rasterize(f){
+  var pdfDoc = null;
+  if (!f.path) return Promise.reject(new Error('This artwork was stored outside the Library, so it can’t be checked. Upload it again here.'));
+  return sb.storage.from('artwork').download(f.path).then(function(r){ if (r.error || !r.data) throw new Error('Couldn’t open the artwork file.'); return r.data; }).then(function(blob){
+    var isPdf = /pdf/i.test(blob.type) || /\.pdf$/i.test(f.name);
+    if (isPdf){
+      var go = window.pdfjsLib ? Promise.resolve() : loadScript(PDFJS + 'pdf.min.js');
+      return go.then(function(){
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + 'pdf.worker.min.js';
+        return blob.arrayBuffer();
+      }).then(function(buf){ return window.pdfjsLib.getDocument({ data: buf }).promise; }).then(function(pdf){ pdfDoc = pdf; return pdf.getPage(1); }).then(function(page){
+        var v1 = page.getViewport({ scale: 1 });
+        var scale = Math.min(2200 / Math.max(v1.width, v1.height), 4);
+        var vp = page.getViewport({ scale: scale });
+        var c = document.createElement('canvas'); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+        var ctx = c.getContext('2d'); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0,0,c.width,c.height);
+        return page.render({ canvasContext: ctx, viewport: vp }).promise.then(function(){ return Promise.all([pdfText(pdfDoc), pdfFonts(pdfDoc).catch(function(){ return null; }), pdfImages(pdfDoc).catch(function(){ return []; })]); }).then(function(a){ return { canvas: c, widthMm: v1.width / 72 * 25.4, heightMm: v1.height / 72 * 25.4, text: a[0], fontInfo: a[1], images: a[2] }; });
+      });
+    }
+    if (!/^image\//.test(blob.type) && !isImg(f)) throw new Error('The check reads PDF, PNG or JPG artwork. Upload one of those as the artwork version.');
+    return new Promise(function(res, rej){
+      var img = new Image(); img.onload = function(){
+        var scale = Math.min(1, 2200 / Math.max(img.width, img.height));
+        var c = document.createElement('canvas'); c.width = Math.round(img.width*scale); c.height = Math.round(img.height*scale);
+        var ctx = c.getContext('2d'); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0,0,c.width,c.height); ctx.drawImage(img,0,0,c.width,c.height);
+        res({ canvas: c, widthMm: null, heightMm: null, pxW: img.width, pxH: img.height });
+      }; img.onerror = function(){ rej(new Error('Couldn’t read the image.')); }; img.src = URL.createObjectURL(blob);
+    });
+  });
+}
+function cmykStr(hex){
+  var c = hexToRgb(hex); if (!c) return '';
+  var r = c[0]/255, g = c[1]/255, b = c[2]/255, k = 1 - Math.max(r, g, b);
+  if (k >= 0.999) return 'C0 M0 Y0 K100';
+  var f = function(x){ return Math.round((1 - x - k) / (1 - k) * 100); };
+  return 'C' + f(r) + ' M' + f(g) + ' Y' + f(b) + ' K' + Math.round(k * 100);
+}
+function rgbStr(hex){ var c = hexToRgb(hex); return c ? 'RGB ' + c.join(' ') : ''; }
+function hexToRgb(h){ var m = /^#?([0-9a-f]{6})$/i.exec(String(h).trim()); if (!m) return null; var n = parseInt(m[1],16); return [n>>16&255, n>>8&255, n&255]; }
+function toHex(r,g,b){ return '#' + [r,g,b].map(function(v){ return ('0' + Math.round(v).toString(16)).slice(-2); }).join('').toUpperCase(); }
+function lab(rgb){
+  var c = rgb.map(function(v){ v/=255; return v > 0.04045 ? Math.pow((v+0.055)/1.055, 2.4) : v/12.92; });
+  var x = (c[0]*0.4124 + c[1]*0.3576 + c[2]*0.1805)/0.95047, y = c[0]*0.2126 + c[1]*0.7152 + c[2]*0.0722, z = (c[0]*0.0193 + c[1]*0.1192 + c[2]*0.9505)/1.08883;
+  function f(t){ return t > 0.008856 ? Math.cbrt(t) : 7.787*t + 16/116; }
+  return [116*f(y)-16, 500*(f(x)-f(y)), 200*(f(y)-f(z))];
+}
+function dE(a,b){ var A = lab(a), B = lab(b); return Math.sqrt(Math.pow(A[0]-B[0],2)+Math.pow(A[1]-B[1],2)+Math.pow(A[2]-B[2],2)); }
+function colourCheck(canvas){
+  var w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d');
+  var data = ctx.getImageData(0,0,w,h).data, step = Math.max(1, Math.floor(Math.sqrt(w*h/60000)));
+  var buckets = {}, total = 0;
+  for (var y=0; y<h; y+=step) for (var x=0; x<w; x+=step){
+    var i = (y*w+x)*4; var r = data[i], g = data[i+1], b = data[i+2];
+    var k = (r>>4) + ',' + (g>>4) + ',' + (b>>4);
+    var o = buckets[k] || (buckets[k] = { n:0, r:0, g:0, b:0 }); o.n++; o.r+=r; o.g+=g; o.b+=b; total++;
+  }
+  var top = Object.keys(buckets).map(function(k){ var o = buckets[k]; return { rgb:[o.r/o.n, o.g/o.n, o.b/o.n], n:o.n }; })
+    .filter(function(o){ return o.n/total >= 0.015; }).sort(function(a,b){ return b.n-a.n; });
+  var merged = [];
+  top.forEach(function(o){ var m = merged.find(function(x){ return dE(x.rgb, o.rgb) < 6; }); if (m) m.n += o.n; else merged.push(o); });
+  merged = merged.slice(0, 8);
+  var pal = brand().palette.map(function(p){ return { name: p.name || p.hex, hex: p.hex, rgb: hexToRgb(p.hex) }; }).filter(function(p){ return p.rgb; });
+  var bad = 0;
+  var items = merged.map(function(o){
+    var hex = toHex(o.rgb[0],o.rgb[1],o.rgb[2]), share = Math.round(o.n/total*100);
+    var neutral = Math.max(o.rgb[0],o.rgb[1],o.rgb[2]) - Math.min(o.rgb[0],o.rgb[1],o.rgb[2]) < 14;
+    if (!pal.length) return { hex: hex, share: share };
+    var best = null; pal.forEach(function(p){ var d = dE(o.rgb, p.rgb); if (!best || d < best.d) best = { p:p, d:d }; });
+    var de = Math.round(best.d*10)/10, note = '';
+    if (de > 10 && !neutral){ bad++; note = 'not close to any brand colour'; }
+    else if (de > 5 && !neutral) note = 'close, but check the swatch';
+    return { hex: hex, share: share, match: best.p.name, de: de, note: note };
+  });
+  return { status: !pal.length ? 'na' : (bad ? 'warn' : 'pass'), items: items,
+    message: !pal.length ? 'Add your brand colours in Check settings to compare. Colours below are what the artwork uses most.' : (bad ? bad + ' colour' + (bad>1?'s':'') + ' don’t match the brand palette. On-screen colour is approximate — confirm against the printer’s proof.' : 'All main colours sit close to the brand palette (on-screen approximation).') };
+}
+function eanCheck(d){
+  d = String(d||'').replace(/\D/g,'');
+  if ([8,12,13,14].indexOf(d.length) < 0) return { ok:false, msg:'Unusual length (' + d.length + ' digits) — EAN-13 has 13.' };
+  var body = d.slice(0,-1), sum = 0;
+  for (var i=0;i<body.length;i++){ var n = +body[body.length-1-i]; sum += (i%2===0 ? n*3 : n); }
+  var cd = (10 - sum%10) % 10;
+  return cd === +d.slice(-1) ? { ok:true, msg:'check digit is correct' } : { ok:false, msg:'check digit should be ' + cd + ', artwork shows ' + d.slice(-1) };
+}
+function decodeQR(canvas){
+  var go = window.jsQR ? Promise.resolve() : loadScript('https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js');
+  return go.then(function(){
+    var ctx = canvas.getContext('2d'), d = ctx.getImageData(0,0,canvas.width,canvas.height);
+    var r = window.jsQR(d.data, d.width, d.height, { inversionAttempts: 'attemptBoth' });
+    return r ? r.data : null;
+  }).catch(function(){ return null; });
+}
+function nativeBarcodes0(canvas){
+  if (!('BarcodeDetector' in window)) return Promise.resolve([]);
+  try { var det = new window.BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','qr_code'] }); return det.detect(canvas).catch(function(){ return []; }); } catch(e){ return Promise.resolve([]); }
+}
+function qrVerdict(url){
+  if (!url) return null;
+  var doms = brand().qrDomains || [];
+  var u; try { u = new URL(url); } catch(e){ return { status:'fail', url: url, message:'The QR code doesn’t contain a valid web link.' }; }
+  var host = u.hostname.replace(/^www\./,'');
+  var okDom = !doms.length || doms.some(function(d){ d = d.replace(/^www\./,''); return host === d || host.slice(-(d.length+1)) === '.' + d; });
+  if (u.protocol !== 'https:') return { status:'warn', url:url, message:'Link isn’t https. Use a secure link so phones don’t warn shoppers.' };
+  if (!okDom) return { status:'warn', url:url, message:'Link goes to ' + host + ', which isn’t on the approved domain list. Confirm it’s intended.' };
+  return { status:'pass', url:url, message:'Decoded and on an approved domain. Scan it on a phone once to confirm the page loads.' };
+}
+function aiReview(sample, canvas, p, ctxInfo){
+  var b = brand();
+  var prompt = 'You are a meticulous packaging artwork proofreader for iD Fresh, an Indian packaged-food company. Review the attached packaging artwork image.\n' +
+    'Product: ' + p.product + ' (' + (p.category||'') + ', ' + (p.packSize||'') + ', ' + (p.packType||'') + ').\n' +
+    (ctxInfo.widthMm ? 'Artwork page size: ' + Math.round(ctxInfo.widthMm) + ' x ' + Math.round(ctxInfo.heightMm) + ' mm. Image is ' + canvas.width + ' x ' + canvas.height + ' px, so 1 mm = ' + (canvas.width/ctxInfo.widthMm).toFixed(2) + ' px.\n' : 'Physical size unknown; estimate font sizes relative to the pack and say they are estimates.\n') +
+    'House rules: spelling must be UK English (e.g. colour, flavour, fibre, litre, organised, savoury, yoghurt). Flag US spellings, typos, grammar errors, inconsistent units, and repeated words. Do not flag brand names, Hindi or other non-English script, or ingredient proper nouns.\n' +
+    'Minimum font size: ' + b.minFontPt + ' pt. List text that looks smaller than that (approximate point size; 1 pt = 0.353 mm cap-height-ish estimate).\n' +
+    (b.notes ? 'Extra brand notes: ' + b.notes + '\n' : '') +
+    'Barcode: if a linear barcode is visible, read the human-readable digits under it exactly.\n' +
+    'QR: say whether a QR code is visible and any call-to-action text next to it.\n' +
+    'Reply with ONLY JSON in this shape: {"summary": string (2 sentences, plain UK English), "spelling": {"status": "pass"|"warn"|"fail", "items": [{"found": string, "suggest": string, "note": string}]}, "fonts": {"status": "pass"|"warn"|"fail", "items": [{"text": string, "estSizePt": number, "note": string}]}, "barcodeDigits": string|null, "barcodeType": string|null, "qrVisible": boolean, "qrNote": string|null, "other": [string]}. Keep each list to the 12 most important items.';
+  var jpeg = canvas.toDataURL('image/jpeg', 0.86), b64 = jpeg.split(',')[1];
+  var shapes = [
+    [{ type: 'base64', mediaType: 'image/jpeg', data: b64 }],
+    [{ mediaType: 'image/jpeg', data: b64 }],
+    [jpeg]
+  ];
+  function attempt(i){
+    var opts = { images: shapes[i], modelTier: 'complex', cache: false };
+    return Promise.resolve(sample.json ? sample.json(prompt, opts) : sample(prompt, opts).then(function(r){ return JSON.parse(String(r.text).replace(/^[^{]*/, '').replace(/[^}]*$/, '')); }))
+      .catch(function(e){ var code = e && e.code; if (i < shapes.length-1 && code !== 'not_granted' && code !== 'rate_limited' && code !== 'cancelled') return attempt(i+1); throw e; });
+  }
+  return attempt(0);
+}
+function runCheck(id, only){
+  only = CHECKS[only] ? only : 'all';
+  var want = function(k){ return only === 'all' || only === k; };
+  var p0 = find(id); if (!p0) return; var art = latestArt(p0); if (!art) return;
+  if (S.checking[id]) return;
+  var step = function(t){ S.checking[id] = { only: only, label: t }; render(); };
+  step('Reading artwork…');
+  var results = {}, info;
+  rasterize(art).then(function(ctx){
+    info = ctx;
+    step(only === 'all' ? 'Checking everything…' : 'Checking ' + CHECKS[only].toLowerCase() + '…');
+    if (want('colours')) results.colours = colourCheck(ctx.canvas);
+    if (want('fonts')) results.fontsPdf = fontCheck(ctx.fontInfo);
+    if (want('resolution')) results.resolution = resolutionCheck(ctx, p0);
+    var dictP = !want('spelling') ? Promise.resolve(null) : loadGB().then(function(){
+      var t = (ctx.text || '').trim();
+      if (!t) return { status: 'na', message: 'No live text in this file — the text is outlined or the artwork is an image. The AI proofread covers it instead. For the dictionary check, upload a PDF with live (unoutlined) text.' };
+      var r = dictSpell(t), us = r.items.filter(function(i){ return i.kind === 'us'; }).length;
+      return { status: r.items.length ? (us ? 'fail' : 'warn') : 'pass', items: r.items.slice(0, 40),
+        message: r.items.length ? 'Checked ' + r.words + ' words against the UK English dictionary.' : 'All ' + r.words + ' words passed the UK English dictionary.' };
+    }).catch(function(){ return { status: 'na', message: 'Couldn’t load the UK dictionary. Try again.' }; });
+    var qrP = want('qr') ? decodeQR(ctx.canvas) : Promise.resolve(null);
+    var bcP = want('barcode') ? nativeBarcodes(ctx.canvas) : (want('qr') ? nativeBarcodes0(ctx.canvas) : Promise.resolve([]));
+    return Promise.all([qrP, bcP, dictP]);
+  }).then(function(found){
+    var list = found[1] || [];
+    if (want('spelling')) results.dict = found[2];
+    if (want('qr')){
+      var qrUrl = found[0] || (list.find(function(b){ return b.format === 'qr_code'; }) || {}).rawValue || null;
+      results.qr = qrVerdict(qrUrl) || { status: 'na', message: 'No QR code found on the artwork.' };
+    }
+    if (want('barcode')){
+      var lin = list.find(function(b){ return b.format !== 'qr_code'; });
+      if (lin){ var c = eanCheck(lin.rawValue); results.barcode = { status: c.ok ? 'pass' : 'fail', digits: lin.rawValue, type: String(lin.format || '').toUpperCase().replace('_', '-'), checkDigit: c.msg, message: 'Read from the barcode bars.' }; }
+    }
+    var needAI = want('spelling') || want('fonts') || (want('barcode') && !results.barcode) || (want('qr') && results.qr && results.qr.status === 'na') || only === 'all';
+    if (!needAI) return { _skip: true };
+    step('AI is proofreading…');
+    return aiCall(info, p0);
+  }).then(function(ai){
+    var skip = ai && ai._skip, ok = ai && !skip && !ai._noImages && !ai._error;
+    var why = ok || skip ? '' : (!ai ? 'AI isn’t available in this view.' : ai._noImages ? 'AI image reading isn’t available here.' : ai._error === 'not_granted' ? 'AI access wasn’t allowed.' : ai._error === 'rate_limited' ? 'AI is busy — try again in a minute.' : 'The AI step didn’t finish.');
+    if (want('spelling')){
+      if (ok){ var si = (ai.spelling && Array.isArray(ai.spelling.items)) ? ai.spelling.items : [];
+        results.spelling = { status: safeSt(ai.spelling && ai.spelling.status) !== 'na' ? safeSt(ai.spelling.status) : (si.length ? 'warn' : 'pass'), items: si.slice(0, 20), message: si.length ? '' : 'No spelling or grammar issues found (UK English).' }; }
+      else results.spelling = { status: 'na', message: why + ' The dictionary check above still ran.' };
+    }
+    if (want('fonts')){
+      if (ok){ var fi = (ai.fonts && Array.isArray(ai.fonts.items)) ? ai.fonts.items : [];
+        results.fonts = { status: safeSt(ai.fonts && ai.fonts.status) !== 'na' ? safeSt(ai.fonts.status) : (fi.length ? 'warn' : 'pass'), items: fi.slice(0, 20), minPt: brand().minFontPt,
+          message: info.widthMm ? 'AI estimate from the PDF page size.' : 'AI estimate — upload a PDF at actual size for exact sizes.' }; }
+      else results.fonts = { status: 'na', minPt: brand().minFontPt, message: why };
+    }
+    if (want('barcode') && !results.barcode){
+      if (ok && ai.barcodeDigits){ var c2 = eanCheck(ai.barcodeDigits); results.barcode = { status: c2.ok ? 'pass' : 'fail', digits: String(ai.barcodeDigits).replace(/\D/g, ''), type: String(ai.barcodeType || 'Barcode'), checkDigit: c2.msg, message: 'Bars couldn’t be read, so AI read the printed digits — scan the printer’s proof to confirm the bars match.' }; }
+      else results.barcode = { status: 'na', message: ok ? 'No barcode found on the artwork.' : 'No barcode read from the bars. ' + why };
+    }
+    if (want('qr') && ok && results.qr){
+      if (results.qr.status === 'na' && ai.qrVisible) results.qr = { status: 'warn', message: 'A QR code is visible but couldn’t be decoded — it may be too small, low-contrast or a placeholder. ' + String(ai.qrNote || '') };
+      else if (ai.qrNote && results.qr.message) results.qr.message += ' ' + String(ai.qrNote);
+    }
+    if (only === 'all'){ results.summary = ok ? String(ai.summary || '') : 'On-device checks finished. ' + why; results.other = ok && Array.isArray(ai.other) ? ai.other.slice(0, 8).map(String) : []; }
+    var p = copy(find(id)); p.checks = p.checks || [];
+    var last = p.checks[p.checks.length - 1];
+    if (only !== 'all' && last && last.version === art.version){
+      var rec = JSON.parse(JSON.stringify(last)); rec.results = rec.results || {};
+      Object.keys(results).forEach(function(k){ rec.results[k] = results[k]; });
+      rec.at = nowIso(); rec.by = S.me; p.checks[p.checks.length - 1] = rec;
+    } else { p.checks = p.checks.slice(-4); p.checks.push({ version: art.version, file: art.name, by: S.me, at: nowIso(), results: results }); }
+    log(p, (only === 'all' ? 'ran all artwork checks' : 'ran the ' + CHECKS[only].toLowerCase() + ' check') + ' on v' + art.version);
+    delete S.checking[id]; save(p); toast(CHECKS[only] + (only === 'all' ? '' : ' check') + ' finished.');
+  }).catch(function(e){ delete S.checking[id]; render(); toast((e && e.message) || 'The check didn’t finish. Try again.'); });
+}
+function aiCall(info, p0){ return aiRemote(info.canvas, p0, info).catch(function(e){ console.warn(e); return { _error: (e && e.message) || 'error' }; }); }
+
+/* ---------- UK dictionary check ----------
+   Word list: check-spelling/cspell-dicts en_GB (LGPL-3.0), served from dict/en_GB.txt */
+var GB = null, GB_LOADING = null;
+var HOUSE_WORDS = ('idfresh idfreshfood superr idly idli idlis dosa dosas appam appams idiyappam idiyappams parota parotas parotta paratha parathas malabar chapati chapatis chapathi rabri paneer sambar sambhar chutney chutneys moong chilla kulcha kulchas lachha rava ragi vada vadas upma poha jowar bajra besan jaggery ghee curd masala atta maida sooji suji ' +
+  'urad dal dals toor chana rajma methi jeera haldi hing kokum tamarind thattu kerala tamil podi rasam ' +
+  'fssai fssc mrp mfd mfg veg nonveg kcal gm ltd pvt bengaluru bangalore karnataka incl approx www com lic batch').split(' ');
+var US_UK = { yogurt:'yoghurt', yogurts:'yoghurts', gray:'grey', aluminum:'aluminium', mold:'mould', molds:'moulds', moldy:'mouldy', donut:'doughnut', donuts:'doughnuts',
+  chili:'chilli', chilies:'chillies', chiles:'chillies', jewelry:'jewellery', pajamas:'pyjamas', omelet:'omelette', omelets:'omelettes', airplane:'aeroplane', cozy:'cosy', aging:'ageing',
+  program:'programme', programs:'programmes', tire:'tyre', tires:'tyres', plow:'plough', check:'', whiskey:'' };
+function loadGB(){
+  if (GB) return Promise.resolve(GB);
+  if (!GB_LOADING) GB_LOADING = fetch('dict/en_GB.txt').then(function(r){ if (!r.ok) throw new Error('dict'); return r.text(); })
+    .then(function(t){ GB = new Set(t.split('\n')); return GB; }).catch(function(e){ GB_LOADING = null; throw e; });
+  return GB_LOADING;
+}
+function ukVariant(w){
+  if (US_UK[w]) return US_UK[w];
+  var rules = [[/or(s|ed|ing|ful|less|ite|ites)?$/, 'our$1'], [/er(s)?$/, 're$1'], [/yz(e|es|ed|ing)$/, 'ys$1'], [/og(s)?$/, 'ogue$1'],
+    [/eled$/, 'elled'], [/eling$/, 'elling'], [/eler(s)?$/, 'eller$1'], [/ense(s)?$/, 'ence$1'], [/ize(s|d)?$/, 'ise$1'], [/izing$/, 'ising'], [/ization(s)?$/, 'isation$1']];
+  for (var i = 0; i < rules.length; i++){
+    if (rules[i][0].test(w)){ var c = w.replace(rules[i][0], rules[i][1]); if (c !== w && GB.has(c)) return c; }
+  }
+  return null;
+}
+function iseVariant(w){
+  var re = /iz(e|es|ed|ing|ation|ations|er|ers)$/;
+  if (!re.test(w)) return null;
+  var c = w.replace(re, 'is$1'); return GB.has(c) ? c : null;
+}
+function suggestWords(w){
+  var a = 'abcdefghijklmnopqrstuvwxyz', out = [], seen = {};
+  function add(c){ if (!seen[c] && c !== w && GB.has(c)){ seen[c] = 1; out.push(c); } }
+  var i, j, L, R;
+  for (i = 0; i < w.length - 1; i++) add(w.slice(0, i) + w[i+1] + w[i] + w.slice(i+2));   // swapped letters first
+  for (i = 0; i <= w.length; i++){ L = w.slice(0, i); R = w.slice(i); if (R) add(L + R.slice(1)); }  // extra letter
+  for (i = 0; i <= w.length; i++){ L = w.slice(0, i); R = w.slice(i); for (j = 0; j < 26; j++){ if (R) add(L + a[j] + R.slice(1)); } } // wrong letter
+  for (i = 0; i <= w.length; i++){ L = w.slice(0, i); R = w.slice(i); for (j = 0; j < 26; j++) add(L + a[j] + R); } // missing letter
+  return out.slice(0, 3);
+}
+function dictSpell(text){
+  var allow = new Set(HOUSE_WORDS.concat(brand().allowWords || []).map(function(x){ return String(x).toLowerCase(); }));
+  var seen = {}, items = [], words = 0;
+  var toks = String(text).replace(/[‘’]/g, "'").match(/[A-Za-z]+(?:'[A-Za-z]+)?/g) || [];
+  toks.forEach(function(raw){
+    var w = raw.replace(/'s$/i, '').replace(/'$/, '');
+    if (w.length < 3) return;
+    words++;
+    if (/^[A-Z]{2,6}$/.test(w)) return;            // acronyms like FSSAI, MRP
+    var lw = w.toLowerCase();
+    if (seen[lw]) return; seen[lw] = 1;
+    if (allow.has(lw)) return;
+    if (!GB.has(lw)){
+      var uk = ukVariant(lw);
+      if (uk) items.push({ found: w, suggest: uk, note: 'US spelling — use the UK form', kind: 'us' });
+      else if (!(lw.length > 3 && /s$/.test(lw) && GB.has(lw.slice(0, -1))))
+        items.push({ found: w, suggest: suggestWords(lw).join(', ') || '—', note: 'not in the UK dictionary — fix it, or add it to Allowed words in Check settings', kind: 'unknown' });
+      return;
+    }
+    var ise = iseVariant(lw);
+    if (ise) items.push({ found: w, suggest: ise, note: '-ize spelling — UK packs usually use -ise', kind: 'ize' });
+  });
+  var order = { us: 0, unknown: 1, ize: 2 };
+  items.sort(function(a, b){ return order[a.kind] - order[b.kind]; });
+  return { items: items, words: words };
+}
+function pdfText(pdf){
+  var n = Math.min(pdf.numPages || 1, 6), ps = [];
+  for (var i = 1; i <= n; i++) ps.push(pdf.getPage(i).then(function(pg){ return pg.getTextContent(); })
+    .then(function(tc){ return tc.items.map(function(it){ return (it.str || '') + (it.hasEOL ? '\n' : ' '); }).join(''); }).catch(function(){ return ''; }));
+  return Promise.all(ps).then(function(a){ return a.join('\n'); });
+}
+
+/* ---------- Barcode reader: Quagga2 (MIT, github.com/ericblade/quagga2), loaded from jsDelivr ---------- */
+function loadQuagga(){ return window.Quagga ? Promise.resolve(window.Quagga) : loadScript('https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.12.1/dist/quagga.min.js').then(function(){ return window.Quagga; }); }
+function quaggaDecode(Q, dataUrl, size){
+  return new Promise(function(res){
+    var done = false, t = setTimeout(function(){ if (!done){ done = true; res(null); } }, 4000);
+    try {
+      Q.decodeSingle({ src: dataUrl, numOfWorkers: 0, inputStream: { size: size }, locator: { patchSize: 'medium', halfSample: true },
+        decoder: { readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader', 'code_128_reader'] }, locate: true },
+        function(r){ if (done) return; done = true; clearTimeout(t); res(r && r.codeResult && r.codeResult.code ? { rawValue: r.codeResult.code, format: r.codeResult.format } : null); });
+    } catch(e){ done = true; clearTimeout(t); res(null); }
+  });
+}
+function quaggaScan(canvas){
+  return loadQuagga().then(function(Q){
+    if (!Q) return null;
+    var jobs = [function(){ return quaggaDecode(Q, canvas.toDataURL('image/png'), 1200); }];
+    [0.5, 0.34].forEach(function(frac){
+      var tw = Math.round(canvas.width * frac), th = Math.round(canvas.height * frac);
+      for (var y = 0; y + th <= canvas.height + 1; y += Math.round(th / 2))
+        for (var x = 0; x + tw <= canvas.width + 1; x += Math.round(tw / 2))
+          (function(x, y){ jobs.push(function(){
+            var c = document.createElement('canvas'); c.width = tw; c.height = th;
+            c.getContext('2d').drawImage(canvas, x, y, tw, th, 0, 0, tw, th);
+            return quaggaDecode(Q, c.toDataURL('image/png'), 800);
+          }); })(x, y);
+    });
+    var i = 0;
+    function next(){ if (i >= jobs.length) return Promise.resolve(null); return jobs[i++]().then(function(r){ return r || next(); }); }
+    return next();
+  }).catch(function(){ return null; });
+}
+function nativeBarcodes(canvas){
+  return nativeBarcodes0(canvas).then(function(list){
+    list = list || [];
+    if (list.some(function(b){ return b.format !== 'qr_code'; })) return list;
+    return quaggaScan(canvas).then(function(q){ return q ? list.concat([q]) : list; });
+  });
+}
+
+/* ---------- Exact font sizes from PDF live text (pdf.js) ---------- */
+function pdfFonts(pdf){
+  var n = Math.min(pdf.numPages || 1, 6), ps = [];
+  for (var i = 1; i <= n; i++) ps.push(pdf.getPage(i).then(function(pg){
+    return pg.getTextContent().then(function(tc){
+      return pg.getOperatorList().then(function(){ return tc; }, function(){ return tc; });
+    }).then(function(tc){
+      var names = {};
+      return tc.items.filter(function(it){ return it.str && it.str.trim(); }).map(function(it){
+        var t = it.transform || [1, 0, 0, 1, 0, 0];
+        var size = Math.hypot(t[2], t[3]) || Math.hypot(t[0], t[1]);
+        var nm = names[it.fontName];
+        if (nm === undefined){
+          nm = '';
+          try { var fo = pg.commonObjs.get(it.fontName); nm = (fo && (fo.name || fo.loadedName)) || ''; } catch(e){}
+          if (!nm && tc.styles && tc.styles[it.fontName]) nm = tc.styles[it.fontName].fontFamily || '';
+          nm = String(nm).replace(/^[A-Z]{6}\+/, ''); names[it.fontName] = nm;
+        }
+        return { text: it.str.trim(), size: Math.round(size * 10) / 10, font: nm };
+      });
+    });
+  }).catch(function(){ return []; }));
+  return Promise.all(ps).then(function(a){ return { items: [].concat.apply([], a) }; });
+}
+function fontCheck(info){
+  var min = brand().minFontPt;
+  if (!info || !info.items || !info.items.length) return { status: 'na', minPt: min, message: 'No live text in this file (outlined text or an image), so exact sizes can’t be read. See the AI estimate below.' };
+  var its = info.items.filter(function(i){ return i.size > 0; });
+  var smallest = its.reduce(function(m, i){ return i.size < m ? i.size : m; }, Infinity);
+  var seen = {}, small = its.filter(function(i){ return i.size < min - 0.05; }).sort(function(a, b){ return a.size - b.size; })
+    .filter(function(i){ var k = i.text + '|' + i.size; if (seen[k]) return false; seen[k] = 1; return true; }).slice(0, 25);
+  var fonts = {};
+  its.forEach(function(i){ var k = i.font || 'Unnamed font'; var f = fonts[k] || (fonts[k] = { name: k, min: Infinity, max: 0, n: 0 }); f.n++; f.min = Math.min(f.min, i.size); f.max = Math.max(f.max, i.size); });
+  var fl = Object.keys(fonts).map(function(k){ return fonts[k]; }).sort(function(a, b){ return a.min - b.min; });
+  return { status: small.length ? 'fail' : 'pass', minPt: min, items: small, fonts: fl,
+    message: 'Smallest text: ' + smallest + ' pt (' + (smallest * 0.3528).toFixed(1) + ' mm em height). ' + fl.length + ' font' + (fl.length === 1 ? '' : 's') + ' used. Sizes read exactly from the PDF at 100% scale.' };
+}
+
+/* ---------- Print resolution (300 DPI) ---------- */
+function pdfImages(pdf){
+  var OPS = (window.pdfjsLib && window.pdfjsLib.OPS) || {};
+  var n = Math.min(pdf.numPages || 1, 4), ps = [];
+  function mul(m, t){ return [m[0]*t[0] + m[2]*t[1], m[1]*t[0] + m[3]*t[1], m[0]*t[2] + m[2]*t[3], m[1]*t[2] + m[3]*t[3], m[0]*t[4] + m[2]*t[5] + m[4], m[1]*t[4] + m[3]*t[5] + m[5]]; }
+  for (var i = 1; i <= n; i++) ps.push(pdf.getPage(i).then(function(pg){
+    return pg.getOperatorList().then(function(ol){
+      var ctm = [1, 0, 0, 1, 0, 0], stack = [], out = [];
+      for (var k = 0; k < ol.fnArray.length; k++){
+        var fn = ol.fnArray[k], a = ol.argsArray[k] || [];
+        if (fn === OPS.save) stack.push(ctm.slice());
+        else if (fn === OPS.restore) ctm = stack.pop() || ctm;
+        else if (fn === OPS.transform) ctm = mul(ctm, a);
+        else if (fn === OPS.paintFormXObjectBegin && a[1]) { stack.push(ctm.slice()); ctm = mul(ctm, a[1]); }
+        else if (fn === OPS.paintFormXObjectEnd) ctm = stack.pop() || ctm;
+        else if (fn === OPS.paintImageXObject || fn === OPS.paintInlineImageXObject || fn === OPS.paintImageXObjectRepeat){
+          var w = a[1], h = a[2];
+          if (typeof a[0] === 'object' && a[0]){ w = a[0].width; h = a[0].height; }
+          var wPt = Math.hypot(ctm[0], ctm[1]), hPt = Math.hypot(ctm[2], ctm[3]);
+          if (!w || !h || wPt < 14 || hPt < 14) continue;   // skip tiny marks under ~5 mm
+          out.push({ px: w + ' × ' + h, wMm: Math.round(wPt / 72 * 254) / 10, hMm: Math.round(hPt / 72 * 254) / 10, dpi: Math.round(Math.min(w / (wPt / 72), h / (hPt / 72))) });
+        }
+      }
+      return out;
+    });
+  }).catch(function(){ return []; }));
+  return Promise.all(ps).then(function(a){ return [].concat.apply([], a); });
+}
+function gcd(a, b){ return b ? gcd(b, a % b) : a; }
+function resolutionCheck(ctx, p){
+  var pw = +p.printWmm || 0, ph = +p.printHmm || 0, items = [], status = 'pass', msg = '';
+  function grade(d){ return d >= 300 ? 'pass' : d >= 200 ? 'warn' : 'fail'; }
+  function worse(a, b){ var o = { pass: 0, na: 0, warn: 1, fail: 2 }; return o[b] > o[a] ? b : a; }
+  if (ctx.widthMm){                                   // PDF
+    var imgs = ctx.images || [];
+    imgs.sort(function(a, b){ return a.dpi - b.dpi; });
+    imgs.slice(0, 12).forEach(function(im){ var g = grade(im.dpi); status = worse(status, g);
+      items.push('Image ' + im.px + ' px placed at ' + im.wMm + ' × ' + im.hMm + ' mm → <b>' + im.dpi + ' DPI</b>' + (g === 'pass' ? '' : g === 'warn' ? ' — a bit soft, 300 DPI recommended' : ' — too low, will print blurry')); });
+    msg = 'PDF page: ' + Math.round(ctx.widthMm) + ' × ' + Math.round(ctx.heightMm) + ' mm. ' + (imgs.length ? imgs.length + ' placed image' + (imgs.length > 1 ? 's' : '') + ' checked.' : 'No placed photos — all vector, so it prints sharp at any size.');
+    if (pw && ph){
+      var fits = ctx.widthMm + 0.5 >= pw && ctx.heightMm + 0.5 >= ph, extra = Math.max(ctx.widthMm - pw, ctx.heightMm - ph);
+      msg += ' Pack print size: ' + pw + ' × ' + ph + ' mm' + (!fits ? ' — the PDF page is smaller than the pack. Check the artboard size.' : extra > 1 ? ' (page is larger — likely includes bleed).' : ' — matches.');
+      if (!fits) status = worse(status, 'warn');
+    }
+    return { status: status, items: items, message: msg };
+  }
+  if (ctx.pxW){                                      // PNG / JPG
+    var g0 = gcd(ctx.pxW, ctx.pxH), maxW = Math.round(ctx.pxW / 300 * 25.4), maxH = Math.round(ctx.pxH / 300 * 25.4);
+    items.push('Image ' + ctx.pxW + ' × ' + ctx.pxH + ' px · ratio ' + (ctx.pxW / g0) + ':' + (ctx.pxH / g0) + ' · prints up to ' + maxW + ' × ' + maxH + ' mm at 300 DPI');
+    if (!pw || !ph) return { status: 'warn', items: items, message: 'Add the pack print size (mm) to this project to check whether the image is sharp enough.' };
+    var dpi = Math.round(Math.min(ctx.pxW / (pw / 25.4), ctx.pxH / (ph / 25.4)));
+    status = grade(dpi);
+    items.push('At the pack size of ' + pw + ' × ' + ph + ' mm this gives <b>' + dpi + ' DPI</b>' + (status === 'pass' ? '' : status === 'warn' ? ' — a bit soft, 300 DPI recommended' : ' — too low, will print blurry'));
+    var ra = ctx.pxW / ctx.pxH, rb = pw / ph;
+    if (Math.abs(ra - rb) / rb > 0.02){ status = worse(status, 'warn'); items.push('Shape doesn’t match the pack (' + ra.toFixed(2) + ' vs ' + rb.toFixed(2) + ') — it will need cropping or extending.'); }
+    return { status: status, items: items, message: 'For print, upload the PDF from the designer — PNG/JPG previews are for review only.' };
+  }
+  return { status: 'na', items: [], message: 'Couldn’t read the artwork size.' };
+}
+
+function openSettings(){
+  var b = brand();
+  document.getElementById('modal-root').innerHTML = '<div class="modal-bg" data-act="close"><form class="modal" role="dialog" aria-modal="true" aria-labelledby="cs-t" data-form="settings">' +
+    '<div class="row"><h2 id="cs-t" style="font-size:26px">Artwork check settings</h2><button type="button" class="btn btn-soft" data-act="close">Close</button></div>' +
+    '<p class="meta" style="margin:0">Shared with everyone on the team.</p><div class="form">' +
+    '<label class="f full">Brand colours — one per line, as name and hex<textarea name="palette" placeholder="iD Green #2E9E63&#10;Rabri Peach #F2A07B">' + esc(b.palette.map(function(c){ return (c.name ? c.name + ' ' : '') + c.hex; }).join('\n')) + '</textarea></label>' +
+    '<label class="f">Minimum font size (pt)<input name="minFontPt" type="number" min="3" max="20" step="0.5" value="' + esc(b.minFontPt) + '"></label>' +
+    '<label class="f">Approved QR domains (comma separated)<input name="qrDomains" value="' + esc((b.qrDomains||[]).join(', ')) + '"></label>' +
+    '<label class="f full">Allowed words — product, brand and regional words the dictionary should accept (comma or new line)<textarea name="allow" placeholder="e.g. Kerala, thattu, Superr">' + esc((b.allowWords||[]).join(', ')) + '</textarea></label>' +
+    '<label class="f full">Extra proofreading notes for AI<textarea name="notes" placeholder="e.g. Always write “Best before”, never “Best by”. Veg mark must be visible.">' + esc(b.notes) + '</textarea></label>' +
+    '</div><div class="row" style="justify-content:flex-end"><button class="btn btn-dark">Save settings</button></div></form></div>';
+}
+
+/* ---------- modals ---------- */
+function openNew(){
+  if (!S.me){ toast('Pick your name at the top right first.'); document.getElementById('me').focus(); return; }
+  var creatives = peopleWith(['designer', 'admin']); if (!creatives.length) creatives = TEAM.filter(function(t){ return t[1]==='Creative'; }).map(function(t){ return t[0]; });
+  var approvers = peopleWith(['approver', 'admin']); if (!approvers.length) approvers = TEAM.filter(function(t){ return t[1]!=='Marketing'; }).map(function(t){ return t[0]; });
+  var defA = ['Yogesh Sadashiv','Jaspal Khalsa','Chandana Jois'];
+  document.getElementById('modal-root').innerHTML = '<div class="modal-bg" data-act="close"><form class="modal" role="dialog" aria-modal="true" aria-labelledby="nr-t" data-form="new">' +
+    '<div class="row"><h2 id="nr-t" style="font-size:28px">New artwork request</h2><button type="button" class="btn btn-soft" data-act="close">Close</button></div>' +
+    '<p class="meta" style="margin:0">Takes about two minutes. Fields marked * are required.</p><div class="form">' +
+    '<label class="f full">Product name *<input name="product" required placeholder="e.g. iD Fresh Rabri 80g"></label>' +
+    '<label class="f">Brand<select name="brand"><option>iD Fresh</option><option>iD Fresh Food</option><option>Superr</option><option>Other</option></select></label>' +
+    '<label class="f">Category<select name="category">' + CATS.map(function(c){ return '<option>' + c + '</option>'; }).join('') + '</select></label>' +
+    '<label class="f">Pack size<input name="packSize" placeholder="e.g. 80g, 1kg, 6 pc"></label>' +
+    '<label class="f">Pack type<select name="packType"><option>Pouch</option><option>Sleeve</option><option>Cup + lid</option><option>Box</option><option>Label</option><option>Other</option></select></label>' +
+    '<label class="f">FG code<input name="fgCode" placeholder="Optional"></label>' +
+    '<label class="f">In-market date *<input type="date" name="inMarket" required></label>' +
+    '<div class="f">Pack print size (mm)<span style="display:flex;gap:8px"><input name="printW" type="number" min="1" step="0.1" placeholder="Width" aria-label="Print width in mm" style="flex:1;min-width:0"><input name="printH" type="number" min="1" step="0.1" placeholder="Height" aria-label="Print height in mm" style="flex:1;min-width:0"></span></div>' +
+    '<label class="f">Designer<select name="designer">' + creatives.map(function(c){ return '<option>' + esc(c) + '</option>'; }).join('') + '</select></label>' +
+    '<div class="f full">Approvers (all must approve)<div class="checks">' + approvers.map(function(a){ return '<label><input type="checkbox" name="appr" value="' + esc(a) + '"' + (defA.indexOf(a)>=0?' checked':'') + '> ' + esc(a) + ' <span class="meta">' + esc(DEPT[a]) + '</span></label>'; }).join('') + '</div></div>' +
+    '<label class="f full">Brief<textarea name="brief" placeholder="What’s changing and why? Claims, mandatory text, references."></textarea></label>' +
+    '</div><p class="err" id="nr-err" role="alert"></p><div class="row" style="justify-content:flex-end"><button type="submit" name="go" value="draft" class="btn btn-soft">Save as draft</button><button type="submit" name="go" value="design" class="btn btn-dark">Send to design</button></div></form></div>';
+  setTimeout(function(){ var i = document.querySelector('[name=product]'); if (i) i.focus(); }, 0);
+}
+function openChanges(id){
+  document.getElementById('modal-root').innerHTML = '<div class="modal-bg" data-act="close"><form class="modal" role="dialog" aria-modal="true" aria-labelledby="rc-t" data-form="changes" data-id="' + esc(id) + '">' +
+    '<h2 id="rc-t" style="font-size:26px">Request changes on ' + esc(id) + '?</h2><p class="meta" style="margin:0">The designer will be asked to update the artwork. Approvals so far reset for the new version.</p><div class="form">' +
+    '<label class="f full">Reason *<select name="reason" required><option value="">Choose a reason</option>' + REASONS.map(function(r){ return '<option>' + r + '</option>'; }).join('') + '</select></label>' +
+    '<label class="f full">What needs to change? *<textarea name="text" required placeholder="Be specific — e.g. leave 30 × 15 mm clear on the lid for the batch code."></textarea></label></div>' +
+    '<p class="err" role="alert" id="rc-err"></p><div class="row" style="justify-content:flex-end"><button type="button" class="btn btn-soft" data-act="close">Keep reviewing</button><button class="btn btn-dark">Request changes</button></div></form></div>';
+  setTimeout(function(){ var s = document.querySelector('[name=reason]'); if (s) s.focus(); }, 0);
+}
+function closeModal(){ document.getElementById('modal-root').innerHTML = ''; }
+
+function nextCode(){
+  var max = 0; S.projects.forEach(function(p){ var m = /^AW-(\d+)$/.exec(p.id); if (m) max = Math.max(max, +m[1]); });
+  return 'AW-' + (max + 1);
+}
+
+/* ---------- actions ---------- */
+function find(id){ return S.projects.find(function(p){ return p.id === id; }); }
+function copy(p){ return JSON.parse(JSON.stringify(p)); }
+function setStage(p, st){ p.stage = st; p.stageSince = nowIso(); }
+
+document.addEventListener('click', function(e){
+  var t = e.target.closest('[data-act]'); if (!t) return;
+  var act = t.getAttribute('data-act'), id = t.getAttribute('data-id');
+  if (act === 'close'){ if (t === e.target || t.tagName === 'BUTTON') closeModal(); return; }
+  if (act === 'new'){ if (!can('request')){ toast('Your access level can\u2019t start requests.'); return; } openNew(); return; }
+  if (act === 'filter'){ S.filter = t.getAttribute('data-v'); render(); return; }
+  if (act === 'lib'){ S.lib = t.getAttribute('data-v'); render(); return; }
+  if (act === 'signout'){ sb.auth.signOut(); return; }
+  if (act === 'loginMode'){ S.loginMode = t.getAttribute('data-v'); S.loginSent = null; render(); return; }
+  if (act === 'forgotPw'){
+    var fe = document.querySelector('form[data-form=login] [name=email]'), em2 = fe ? String(fe.value || '').trim().toLowerCase() : '';
+    var le2 = document.getElementById('login-err');
+    if (em2.slice(-COMPANY.length) !== COMPANY){ le2.textContent = 'Type your @idfreshfood.com email first, then click “Forgot password?”.'; return; }
+    sb.auth.resetPasswordForEmail(em2, { redirectTo: location.origin + location.pathname }).then(function(r){ if (r.error) le2.textContent = 'Couldn\u2019t send the reset email — ' + r.error.message; else { S.resetSent = em2; render(); } });
+    return;
+  }
+  if (act === 'dl'){
+    var dlUrl = t.getAttribute('data-url'), dlName = t.getAttribute('data-name') || 'artwork';
+    fetch(dlUrl).then(function(r){ if (!r.ok) throw 0; return r.blob(); }).then(function(bl){
+      var a = document.createElement('a'); a.href = URL.createObjectURL(bl); a.download = dlName; document.body.appendChild(a); a.click();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+    }).catch(function(){ toast('Couldn’t download that file. Try again.'); });
+    return;
+  }
+  if (act === 'settings'){ if (!can('settings')){ toast('Only admins can change check settings.'); return; } openSettings(); return; }
+  if (act === 'invite'){ if (can('team')) sendInvites([t.getAttribute('data-email')]); return; }
+  if (act === 'inviteAll'){ if (can('team')) sendInvites((S.team || []).filter(function(r){ return !r.invited_at; }).map(function(r){ return r.email; })); return; }
+  if (act === 'removeMember'){
+    var em = t.getAttribute('data-email');
+    if (!can('team') || !window.confirm('Remove ' + em + ' from the Artwork Library? They won\u2019t be able to sign in.')) return;
+    sb.from('team').delete().eq('email', em).then(function(r){ if (r.error) toast('Couldn\u2019t remove — ' + r.error.message); else { toast('Removed ' + em + '.'); loadTeam(); } });
+    return;
+  }
+  if (act === 'dl'){
+    var url = t.getAttribute('data-url'), name = t.getAttribute('data-name') || 'artwork';
+    var c = window.claude;
+    Promise.resolve(c && c.use ? c.use('downloads') : null).then(function(dl){
+      if (!dl){ toast('Downloads aren’t available in this view.'); return; }
+      return fetch(url).then(function(r){ if (!r.ok) throw new Error('fetch'); return r.blob(); })
+        .then(function(b){ return dl.save({ filename: name, data: b }); })
+        .catch(function(e){ if (e && /declin|cancel|denied/i.test(String(e.code || e.message))) return; toast('Couldn’t download that file. Try again.'); });
+    });
+    return;
+  }
+  if (act === 'check'){ if (!can('check')){ toast('Your access level can\u2019t run checks.'); return; } if (!S.me){ toast('Pick your name at the top right first.'); return; } runCheck(id, t.getAttribute('data-only')); return; }
+  if (!S.me && act !== 'nudge'){ toast('Pick your name at the top right first.'); return; }
+  if (['approve','toApproval','handover','toDesign'].indexOf(act) >= 0){ var lk = act + '|' + id + '|' + S.me; S.locks = S.locks || {}; if (S.locks[lk]) return; S.locks[lk] = 1; setTimeout(function(){ delete S.locks[lk]; }, 1200); }
+  var p0 = find(id); if (!p0) return; var p = copy(p0);
+  if (act === 'nudge'){ var w = waitingOn(p); log(p, 'nudged ' + w.map(first).join(', ')); save(p); toast('Reminder logged for ' + first(w[0]) + '.'); return; }
+  if (act === 'toDesign'){ setStage(p,'design'); log(p,'sent the brief to design'); save(p); toast('Sent to ' + first(p.designer) + '.'); return; }
+  if (act === 'toApproval'){ p.version = (p.version||0) + 1; p.approvals = {}; setStage(p,'approval'); log(p,'sent artwork v' + p.version + ' for approval'); save(p); toast('Sent for approval.'); return; }
+  if ((act === 'approve' || act === 'changes') && !can('approve')){ toast('Only approvers can sign off artwork.'); return; }
+  if (act === 'approve'){
+    p.approvals = p.approvals || {}; p.approvals[S.me] = 'approved'; log(p,'approved artwork v' + (p.version||1));
+    var all = (p.approvers||[]).every(function(a){ return p.approvals[a]==='approved'; });
+    if (all){ setStage(p,'final'); log(p,'all approvals in — final files requested from ' + first(p.designer)); }
+    save(p); toast(all ? 'Approved. Final files requested from ' + first(p.designer) + '.' : 'Approved. Waiting on the others.'); return;
+  }
+  if (act === 'changes'){ openChanges(id); return; }
+  if (act === 'handover'){ setStage(p,'live'); log(p,'handed over final files · v' + (p.version||1) + ' is live in the Library'); save(p); toast('Files handed over. ' + p.product + ' is live in the Library.'); return; }
+});
+document.addEventListener('submit', function(e){
+  var f = e.target; var kind = f.getAttribute('data-form'); if (!kind) return; e.preventDefault();
+  if (kind === 'member'){
+    if (!can('team')) return;
+    var me2 = { full_name: String(f.elements['full_name'].value || '').trim(), email: String(f.elements['email'].value || '').trim().toLowerCase(), department: f.elements['department'].value, role: f.elements['role'].value };
+    var go2 = (e.submitter && e.submitter.value) || 'invite', er = document.getElementById('mem-err');
+    if (!me2.full_name || me2.email.slice(-COMPANY.length) !== COMPANY){ er.textContent = 'Add a name and an @idfreshfood.com email.'; return; }
+    er.textContent = '';
+    sb.from('team').upsert(me2).then(function(r){
+      if (r.error){ er.textContent = 'Couldn’t add — ' + r.error.message; return; }
+      f.reset(); toast(me2.full_name + ' added as ' + ROLES[me2.role].label + '.'); loadTeam();
+      if (go2 === 'invite') sendInvites([me2.email]);
+    });
+    return;
+  }
+  if (kind === 'bulk'){
+    if (!can('team')) return;
+    var parsed = parseBulk(f.elements['list'].value), be = document.getElementById('bulk-err'), inv = f.elements['invite'].checked;
+    if (!parsed.rows.length){ be.textContent = parsed.errors.join(' · ') || 'Paste at least one person.'; return; }
+    be.textContent = parsed.errors.length ? 'Skipped — ' + parsed.errors.join(' · ') : '';
+    sb.from('team').upsert(parsed.rows).then(function(r){
+      if (r.error){ be.textContent = 'Couldn’t add — ' + r.error.message; return; }
+      f.elements['list'].value = ''; toast(parsed.rows.length + ' people added.' + (parsed.errors.length ? ' Skipped ' + parsed.errors.length + ': ' + parsed.errors.join(' · ') : '')); loadTeam();
+      if (inv) sendInvites(parsed.rows.map(function(x){ return x.email; }));
+    });
+    return;
+  }
+  if (kind === 'login'){
+    var em = String(f.elements['email'].value || '').trim().toLowerCase(), le = document.getElementById('login-err');
+    if (em.slice(-COMPANY.length) !== COMPANY){ le.textContent = 'Use your @idfreshfood.com email address.'; return; }
+    if (f.getAttribute('data-mode') === 'password'){
+      le.textContent = 'Signing in…';
+      sb.auth.signInWithPassword({ email: em, password: f.elements['password'].value }).then(function(r){
+        if (r.error){ le.textContent = /invalid login|invalid credentials/i.test(r.error.message) ? 'That email and password don’t match. Try again, or use “Forgot password?”.' : /not confirmed/i.test(r.error.message) ? 'This account isn’t confirmed yet — check your inbox for the invite.' : 'Couldn’t sign in — ' + r.error.message; return; }
+        le.textContent = '';
+      });
+      return;
+    }
+    le.textContent = 'Sending…';
+    sb.auth.signInWithOtp({ email: em, options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false } }).then(function(r){
+      if (r.error){ le.textContent = /database error|hasn.t been added|signups? not allowed|not found/i.test(r.error.message) ? 'This email hasn’t been added to the Artwork Library yet. Ask a Creative lead to invite you.' : 'Couldn’t send the link — ' + r.error.message; return; }
+      S.loginSent = em; render();
+    });
+    return;
+  }
+  if (kind === 'setpw'){
+    var p1 = f.elements['pw1'].value, p2 = f.elements['pw2'].value, pe = document.getElementById('pw-err');
+    if (p1 !== p2){ pe.textContent = 'The two passwords don’t match.'; return; }
+    if (p1.length < 10){ pe.textContent = 'Use at least 10 characters.'; return; }
+    if (/^(\d)\1*$|^(0123456789|123456789|1234567890|password|idfresh)/i.test(p1)){ pe.textContent = 'That’s too easy to guess. Try a short phrase, e.g. three random words.'; return; }
+    pe.textContent = 'Saving…';
+    sb.auth.updateUser({ password: p1, data: { pw_changed: true } }).then(function(r){
+      if (r.error){ pe.textContent = 'Couldn’t save — ' + r.error.message; return; }
+      toast('Password saved.');
+      var wasRequired = S.mode === 'setpw-required';
+      if (wasRequired){ S.mode = 'connecting'; sb.auth.getSession().then(function(x){ onSession(x.data && x.data.session); }); }
+      else location.hash = '#/work';
+    });
+    return;
+  }
+  if (kind === 'settings'){
+    var pal = String(f.elements['palette'].value||'').split('\n').map(function(l){ var m = /(.*?)\s*#?([0-9a-f]{6})\s*$/i.exec(l.trim()); return m ? { name: m[1].trim(), hex: '#' + m[2].toUpperCase() } : null; }).filter(Boolean);
+    var nb = { palette: pal, minFontPt: parseFloat(f.elements['minFontPt'].value) || 6, qrDomains: String(f.elements['qrDomains'].value||'').split(',').map(function(s){ return s.trim().toLowerCase(); }).filter(Boolean), notes: String(f.elements['notes'].value||'').trim(), allowWords: String(f.elements['allow'].value||'').split(/[\n,]+/).map(function(x){ return x.trim(); }).filter(Boolean), updatedAt: nowIso(), updatedBy: S.me || '' };
+    S.brand = nb; closeModal(); render();
+    sb.from('settings').upsert({ id: 'brand', doc: nb }).then(function(r){ if (r.error) toast('Couldn’t save settings — ' + r.error.message); });
+    toast('Check settings saved.'); return;
+  }
+  if (kind === 'note'){
+    var txt = (f.elements['t'].value||'').trim(); if (!txt) return; if (!S.me){ toast('Pick your name at the top right first.'); return; }
+    var p = copy(find(f.getAttribute('data-id'))); p.notes = p.notes || []; p.notes.push({ by:S.me, text:txt, at:nowIso(), kind:'comment' }); f.elements['t'].value=''; save(p); return;
+  }
+  if (kind === 'changes'){
+    var reason = f.elements['reason'].value, text = (f.elements['text'].value||'').trim();
+    if (!reason || !text){ document.getElementById('rc-err').textContent = 'Choose a reason and describe what needs to change.'; return; }
+    var q = copy(find(f.getAttribute('data-id')));
+    q.notes = q.notes || []; q.notes.push({ by:S.me, text:text, reason:reason, at:nowIso(), kind:'change' });
+    q.approvals = {}; setStage(q,'design'); log(q,'requested changes on v' + (q.version||1));
+    closeModal(); save(q); toast('Changes requested. ' + first(q.designer) + ' has been asked to update the artwork.'); return;
+  }
+  if (kind === 'new'){
+    var go = (e.submitter && e.submitter.value) || 'design';
+    var fd = new FormData(f), product = (fd.get('product')||'').trim(), inMarket = fd.get('inMarket');
+    var appr = fd.getAll('appr');
+    if (!product || !inMarket){ document.getElementById('nr-err').textContent = 'Add a product name and in-market date to continue.'; return; }
+    if (!appr.length){ document.getElementById('nr-err').textContent = 'Pick at least one approver.'; return; }
+    var np = { id: nextCode(), product: product, brand: fd.get('brand'), category: fd.get('category'), packSize: (fd.get('packSize')||'').trim(), packType: fd.get('packType'),
+      fgCode: (fd.get('fgCode')||'').trim(), inMarket: inMarket, printWmm: parseFloat(fd.get('printW')) || null, printHmm: parseFloat(fd.get('printH')) || null, designer: fd.get('designer'), approvers: appr, approvals: {}, brief: (fd.get('brief')||'').trim(),
+      requestedBy: S.me, createdAt: nowIso(), version: 0, files: [], notes: [], activity: [] };
+    setStage(np, go === 'draft' ? 'brief' : 'design'); log(np, go === 'draft' ? 'saved a draft request' : 'created the request and sent it to design');
+    closeModal();
+    reserveId(np.id).then(function(freeId){ np.id = freeId; save(np); location.hash = '#/p/' + encodeURIComponent(np.id); toast(go === 'draft' ? 'Draft saved as ' + np.id + '.' : np.id + ' sent to ' + first(np.designer) + '.'); });
+    return;
+  }
+});
+document.addEventListener('change', function(e){
+  var t = e.target;
+  if (t.matches && t.matches('select[data-role-for]')){
+    if (!can('team')) return;
+    var who2 = t.getAttribute('data-role-for'), nr = t.value;
+    sb.from('team').update({ role: nr }).eq('email', who2).then(function(r){ if (r.error) toast('Couldn’t change access — ' + r.error.message); else { toast(who2 + ' is now ' + ROLES[nr].label + '.'); loadTeam(); } });
+    return;
+  }
+  if (t.id === 'me'){ fillMe(); return; }   // your name comes from the Team list
+  if (t.matches('input[type=file][data-up]')){
+    var file = t.files && t.files[0]; if (!file) return;
+    if (!S.me){ toast('Pick your name at the top right first.'); return; }
+    var kind = t.getAttribute('data-up'), id = t.getAttribute('data-id');
+    if (file.size > 50 * 1024 * 1024){ toast('That file is over 50 MB. Save a packaged PDF or zip, then try again.'); t.value=''; return; }
+    toast('Uploading ' + file.name + '…');
+    var done = function(assetId){
+      var p = copy(find(id)); var ver = kind === 'artwork' ? (p.version||0) + 1 : (kind === 'source' ? (p.version||1) : null);
+      p.files = p.files || []; p.files.push({ kind: kind, name: file.name, path: assetId || null, version: ver, by: S.me, at: nowIso() });
+      log(p, 'uploaded ' + ({artwork:'artwork',source:'final file',keyline:'a reference file'}[kind]) + ' ' + file.name);
+      save(p); toast('Uploaded ' + file.name + '.');
+    };
+    var path = id + '/' + Date.now() + '-' + file.name.replace(/[^\w.\-]+/g, '_');
+    sb.storage.from('artwork').upload(path, file, { upsert: false, contentType: file.type || undefined }).then(function(r){
+      if (r.error){ toast('This file didn’t upload — ' + (r.error.message || 'try again') + '.'); return; }
+      done(path);
+    });
+    return;
+  }
+});
+document.addEventListener('input', function(e){
+  if (e.target.id === 'q'){ S.q = e.target.value; render(); var i = document.getElementById('q'); if (i){ i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }
+  if (e.target.id === 'libq'){ S.libq = e.target.value; render(); var j = document.getElementById('libq'); if (j){ j.focus(); j.setSelectionRange(j.value.length, j.value.length); } }
+});
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && document.querySelector('.modal')) closeModal(); });
+window.addEventListener('hashchange', function(){ render(); window.scrollTo(0,0); });
+
+function render(){
+  var keep = captureInputs(), whoEl = document.querySelector('.who');
+  if (S.mode === 'setpw-required'){
+    document.getElementById('nav').innerHTML = ''; whoEl.style.display = 'none';
+    document.getElementById('view').innerHTML = viewSetPassword(); return;
+  }
+  if (S.mode === 'signedout' || S.mode === 'connecting'){
+    document.getElementById('nav').innerHTML = ''; whoEl.style.display = 'none';
+    document.getElementById('view').innerHTML = viewLogin(); restoreInputs(keep); return;
+  }
+  whoEl.style.display = '';
+  if (S.mode === 'notinvited'){
+    document.getElementById('nav').innerHTML = '';
+    document.getElementById('view').innerHTML = '<div style="max-width:560px;margin:6vh auto;width:100%"><div class="panel" style="padding:32px;gap:14px"><h1 style="font-size:32px">You\u2019re signed in, but not on the team yet</h1><p class="meta" style="margin:0;font-size:16px">' + esc(S.email) + ' hasn\u2019t been added to the Artwork Library. Ask a Creative lead to add you on the Team page — then refresh this page.</p><button class="btn btn-soft" data-act="signout">Sign out</button></div></div>';
+    return;
+  }
+  var nb = whoEl.querySelector('[data-act=new]'); if (nb) nb.style.display = can('request') ? '' : 'none';
+  var r = route(); renderNav(r);
+  var v = document.getElementById('view'), html;
+  if (r.name === 'p') html = viewProject(r.id);
+  else if (r.name === 'projects') html = viewProjects();
+  else if (r.name === 'library') html = viewLibrary();
+  else if (r.name === 'insights') html = viewInsights();
+  else if (r.name === 'team') html = viewTeam();
+  else if (r.name === 'password') html = viewSetPassword();
+  else html = viewWork();
+  v.innerHTML = html;
+  restoreInputs(keep);
+}
+
+S.me = null;
+fillMe(); render(); connect();
+})();
+</script>
+
+</body>
+</html>
