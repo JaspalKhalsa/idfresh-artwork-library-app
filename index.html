@@ -189,7 +189,6 @@ h2{margin:0;font-size:22px;font-weight:800;letter-spacing:-.01em}
       <button class="btn btn-lime" data-act="new">+ New request</button>
       <label class="sr" for="me">Your name</label>
       <select id="me" aria-label="Your name"></select>
-      <a class="btn" style="background:rgba(0,0,0,.24);color:#FFF" href="#/password">Password</a>
       <button class="btn" style="background:rgba(0,0,0,.24);color:#FFF" data-act="signout">Sign out</button>
     </div>
   </header>
@@ -423,7 +422,6 @@ function loadSettings(){
 function onSession(session){
   S.session = session;
   if (!session){ S.mode = 'signedout'; started = false; render(); return; }
-  if (signInMethod(session) === 'password' && !(session.user.user_metadata || {}).pw_changed){ S.email = session.user.email; S.mode = 'setpw-required'; render(); return; }
   if (started) return;
   started = true; S.mode = 'live'; S.email = session.user.email; assets = true;
   loadTeam(); loadAll(); loadSettings();
@@ -455,22 +453,11 @@ function viewLogin(){
   if (S.mode === 'connecting') return '<div class="empty"><b>Loading…</b></div>';
   var logo = '<img src="logo-green.png" alt="iD Fresh Artwork Library" style="height:72px;width:auto;align-self:flex-start;background:#FFFFFF;border-radius:16px;padding:10px 14px">';
   var wrap = function(inner){ return '<div style="max-width:480px;margin:6vh auto;width:100%">' + inner + '</div>'; };
-  if (S.loginMode === 'link'){
-    return wrap('<form class="panel" data-form="login" data-mode="link" style="padding:32px;gap:16px">' + logo +
-      '<h1 style="font-size:34px">Email me a link</h1><p class="meta" style="margin:0;font-size:16px">We’ll send a one-time sign-in link to your iD Fresh email.</p>' +
-      (S.loginSent ? '<div class="pastel" style="background:var(--mint)"><div class="bd">Check your inbox at <b>' + esc(S.loginSent) + '</b> and click the link. It can take a minute to arrive.</div></div>' : '') +
-      '<label class="f">Work email<input name="email" type="email" required autocomplete="email" placeholder="name@idfreshfood.com"></label>' +
-      '<p class="err" id="login-err" role="alert"></p><button class="btn btn-dark">' + (S.loginSent ? 'Send the link again' : 'Send me a sign-in link') + '</button>' +
-      '<button type="button" class="btn btn-soft" data-act="loginMode" data-v="password">Sign in with password instead</button></form>');
-  }
-  return wrap('<form class="panel" data-form="login" data-mode="password" style="padding:32px;gap:16px">' + logo +
-    '<h1 style="font-size:34px">Sign in</h1><p class="meta" style="margin:0;font-size:16px">Use your iD Fresh work email and password.</p>' +
-    (S.resetSent ? '<div class="pastel" style="background:var(--mint)"><div class="bd">Password reset email sent to <b>' + esc(S.resetSent) + '</b>. Click the link in it to choose a new password.</div></div>' : '') +
-    '<label class="f">Work email<input name="email" type="email" required autocomplete="username" placeholder="name@idfreshfood.com"></label>' +
-    '<label class="f">Password<input name="password" type="password" required autocomplete="current-password" minlength="6"></label>' +
-    '<p class="err" id="login-err" role="alert"></p><button class="btn btn-dark">Sign in</button>' +
-    '<div class="row" style="justify-content:space-between"><button type="button" class="btn btn-soft" data-act="loginMode" data-v="link">Email me a link instead</button>' +
-    '<button type="button" class="btn btn-soft" data-act="forgotPw">Forgot password?</button></div></form>');
+  return wrap('<form class="panel" data-form="login" data-mode="link" style="padding:32px;gap:16px">' + logo +
+    '<h1 style="font-size:34px">Sign in</h1><p class="meta" style="margin:0;font-size:16px">Enter your iD Fresh work email. We’ll email you a sign-in link — no password needed.</p>' +
+    (S.loginSent ? '<div class="pastel" style="background:var(--mint)"><div class="bd">Check your inbox at <b>' + esc(S.loginSent) + '</b> and click the link. It can take a minute to arrive.</div></div>' : '') +
+    '<label class="f">Work email<input name="email" type="email" required autocomplete="email" placeholder="name@idfreshfood.com"></label>' +
+    '<p class="err" id="login-err" role="alert"></p><button class="btn btn-dark">' + (S.loginSent ? 'Send the link again' : 'Send me a sign-in link') + '</button></form>');
 }
 function viewSetPassword(){
   var first = S.mode === 'setpw-required';
@@ -1396,8 +1383,8 @@ document.addEventListener('submit', function(e){
       return;
     }
     le.textContent = 'Sending…';
-    sb.auth.signInWithOtp({ email: em, options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false } }).then(function(r){
-      if (r.error){ le.textContent = /database error|hasn.t been added|signups? not allowed|not found/i.test(r.error.message) ? 'This email hasn’t been added to the Artwork Library yet. Ask a Creative lead to invite you.' : 'Couldn’t send the link — ' + r.error.message; return; }
+    sb.auth.signInWithOtp({ email: em, options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: true } }).then(function(r){
+      if (r.error){ le.textContent = /database error|hasn.t been added|signups? not allowed|not found/i.test(r.error.message) ? 'This email isn’t on the Artwork Library team list yet. Ask a Creative lead to add you.' : 'Couldn’t send the link — ' + r.error.message; return; }
       S.loginSent = em; render();
     });
     return;
