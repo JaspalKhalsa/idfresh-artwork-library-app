@@ -1,0 +1,29 @@
+<!-- Paste into Supabase → Authentication → Emails → Templates → "Invite user".
+     Subject line:  You're invited to the iD Fresh Artwork Library
+     The wording changes with each person's access level (set on the Team page). -->
+<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#111111">
+  <div style="background:#037D70;padding:24px;border-radius:16px 16px 0 0">
+    <div style="color:#FFFFFF;font-size:22px;font-weight:bold">iD Fresh Artwork Library</div>
+  </div>
+  <div style="background:#F3F3F1;padding:28px 24px;border-radius:0 0 16px 16px">
+    <p style="font-size:17px;margin:0 0 14px">Hi {{ .Data.full_name }},</p>
+
+    {{ if eq .Data.role "admin" }}
+    <p style="font-size:15px;line-height:1.5">You've been set up as an <b>Admin</b> on the Artwork Library — the new home for all our packaging artwork. You can manage the team and invites, adjust the artwork check settings, and do everything on every project.</p>
+    {{ else if eq .Data.role "requester" }}
+    <p style="font-size:15px;line-height:1.5">You've been added as a <b>Requester</b> on the Artwork Library. Start new artwork requests in about two minutes, see exactly where every pack is and who it's waiting on, and nudge people when something is late. No more chasing on WhatsApp.</p>
+    {{ else if eq .Data.role "designer" }}
+    <p style="font-size:15px;line-height:1.5">You've been added as a <b>Designer</b> on the Artwork Library. Upload artwork versions, run the built-in checks (UK spelling, font size, colours, barcode, QR and resolution) before you send for approval, and hand over final print-ready files in one step.</p>
+    {{ else if eq .Data.role "approver" }}
+    <p style="font-size:15px;line-height:1.5">You've been added as an <b>Approver</b> on the Artwork Library. When a pack needs your sign-off it shows up under <b>My work</b>. Review the artwork and check results, then approve — or request changes with a reason so the designer knows exactly what to fix.</p>
+    {{ else }}
+    <p style="font-size:15px;line-height:1.5">You've been given <b>view access</b> to the Artwork Library. Find the latest approved version of any pack and download print-ready files from the Library — always the right version.</p>
+    {{ end }}
+
+    <p style="margin:24px 0">
+      <a href="{{ .ConfirmationURL }}" style="background:#111111;color:#FFFFFF;text-decoration:none;font-weight:bold;padding:14px 24px;border-radius:999px;display:inline-block">Open the Artwork Library</a>
+    </p>
+    <p style="font-size:13px;color:#4F4F4F;line-height:1.5">No password needed — this link signs you in. Next time, just enter your work email on the sign-in page and we'll send you a fresh link.</p>
+    <p style="font-size:13px;color:#4F4F4F">Questions? Reply to Jaspal Khalsa, Creative.</p>
+  </div>
+</div>
