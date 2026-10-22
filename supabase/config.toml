@@ -1,0 +1,10 @@
+project_id = "vqrtupwczqvvygnrvzmh"
+
+# The function checks the user's sign-in itself (and that it's an @idfreshfood.com email),
+# so the gateway JWT check is switched off. This avoids problems with the new publishable keys.
+[functions.artwork-check]
+verify_jwt = false
+
+# Checks the caller is a signed-in admin on the team list before sending any invite.
+[functions.invite-user]
+verify_jwt = false
