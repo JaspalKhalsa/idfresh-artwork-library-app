@@ -58,7 +58,7 @@ Run these commands in a terminal on a computer with Node installed:
 npm install -g supabase
 supabase login
 cd idfresh-artwork-library
-supabase link --project-ref vqrtupwczqvvygnrvzmh
+supabase link --project-ref fwtujjspadphjilydibp
 supabase secrets set ANTHROPIC_API_KEY=your-anthropic-key
 supabase functions deploy artwork-check --no-verify-jwt
 supabase functions deploy invite-user --no-verify-jwt
