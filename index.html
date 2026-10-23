@@ -420,12 +420,17 @@ function stageLabel(p){
 }
 // Top-right approval controls on a project: who's still to approve, and Approve / Reject for the current approver.
 function approvalBar(p){
+  if (p.stage === 'design'){
+    var nextV = (parseInt(p.version, 10) || 0) + 1;
+    var ready = files(p, 'artwork').some(function(f){ return f.version === nextV; });
+    return ready ? '<button class="btn btn-lime" data-act="toApproval" data-id="' + esc(p.id) + '">Send v' + nextV + ' for approval →</button>'
+      : '<span class="pill p-today">Waiting for artwork v' + nextV + ' — upload it below</span>';
+  }
+  if (p.stage === 'final') return '<span class="pill p-live">All approved · final files next</span>';
   if (p.stage !== 'approval') return '';
   var ap = p.approvers || [], got = ap.filter(function(a){ return (p.approvals || {})[a] === 'approved'; }), w = waitingOn(p);
   var status = '<span class="pill ' + (w.length ? 'p-today' : 'p-live') + '" title="' + esc(w.length ? 'Not approved yet: ' + w.join(', ') : 'Everyone approved') + '">' + got.length + ' of ' + ap.length + ' approved' + (w.length ? ' · Waiting on ' + esc(w.map(first).join(', ')) : '') + '</span>';
-  var mine = S.me && ap.indexOf(S.me) >= 0;
-  if (!mine) return status;
-  if ((p.approvals || {})[S.me] === 'approved') return status + '<span class="pill p-live">You approved</span>';
+  if (S.me && (p.approvals || {})[S.me] === 'approved') return status + '<span class="pill p-live">You approved</span>';
   return status + '<button class="btn btn-lime" data-act="approve" data-id="' + esc(p.id) + '">✓ Approve</button><button class="btn" style="background:var(--rose);color:#5C1208" data-act="changes" data-id="' + esc(p.id) + '">✕ Reject</button>';
 }
 function waitingOn(p){
@@ -1483,11 +1488,13 @@ document.addEventListener('click', function(e){
   var p0 = find(id); if (!p0) return; var p = copy(p0);
   if (act === 'nudge'){ var w = waitingOn(p); log(p, 'nudged ' + w.map(first).join(', ')); save(p); toast('Reminder logged for ' + first(w[0]) + '.'); return; }
   if (act === 'toDesign'){ setStage(p,'design'); log(p,'sent the brief to design'); save(p); toast('Sent to ' + first(p.designer) + '.'); return; }
+  if (act === 'toApproval' && !files(p, 'artwork').some(function(f){ return f.version === (parseInt(p.version, 10) || 0) + 1; })){ toast('Upload the new artwork version first.'); return; }
   if (act === 'toApproval'){ p.version = (p.version||0) + 1; p.approvals = {}; setStage(p,'approval'); log(p,'sent artwork v' + p.version + ' for approval'); save(p); toast('Sent for approval.'); return; }
   if ((act === 'approve' || act === 'changes') && !can('approve')){ toast('Only approvers can sign off artwork.'); return; }
   if (act === 'approve'){
     if (p.stage !== 'approval'){ toast('This artwork isn’t waiting for approval.'); return; }
-    if ((p.approvers || []).indexOf(S.me) < 0){ toast('You’re not on the approver list for this project.'); return; }
+    // Anyone can approve; someone not on the list is added as an extra approver (everyone listed still has to approve).
+    if ((p.approvers || []).indexOf(S.me) < 0){ p.approvers = (p.approvers || []).concat([S.me]); }
     p.approvals = p.approvals || {}; p.approvals[S.me] = 'approved'; log(p,'approved artwork v' + (p.version||1));
     var all = (p.approvers||[]).every(function(a){ return p.approvals[a]==='approved'; });
     if (all){ setStage(p,'final'); log(p,'all approvals in — final files requested from ' + first(p.designer)); }
