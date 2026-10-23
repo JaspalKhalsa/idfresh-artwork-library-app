@@ -278,7 +278,8 @@ function applyTeam(rows){
   var mine = S.team.find(function(r){ return String(r.email).toLowerCase() === String(S.email || '').toLowerCase(); });
   var typed = getName();
   if (mine && typed){
-    var hit = S.team.find(function(r){ return String(r.full_name).trim().toLowerCase() === typed.toLowerCase(); });
+    var hit = S.team.find(function(r){ return String(r.full_name).trim().toLowerCase() === typed.toLowerCase() || String(r.email).toLowerCase() === typed.toLowerCase(); })
+      || S.team.find(function(r){ return String(r.full_name).trim().toLowerCase().split(' ')[0] === typed.toLowerCase(); });
     S.me = hit ? hit.full_name : typed; S.role = ROLES[mine.role] ? mine.role : 'viewer'; S.meLocked = true; if (S.mode === 'notinvited') S.mode = 'live';
   }
   else if (mine){ S.me = mine.full_name; S.role = ROLES[mine.role] ? mine.role : 'viewer'; S.meLocked = true; if (S.mode === 'notinvited') S.mode = 'live'; }
@@ -416,6 +417,16 @@ function stageLabel(p){
   if (p.stage === 'final') return 'Hand over final files';
   if (p.stage === 'brief') return 'Brief · draft';
   return 'Live · v' + (p.version||1);
+}
+// Top-right approval controls on a project: who's still to approve, and Approve / Reject for the current approver.
+function approvalBar(p){
+  if (p.stage !== 'approval') return '';
+  var ap = p.approvers || [], got = ap.filter(function(a){ return (p.approvals || {})[a] === 'approved'; }), w = waitingOn(p);
+  var status = '<span class="pill ' + (w.length ? 'p-today' : 'p-live') + '" title="' + esc(w.length ? 'Not approved yet: ' + w.join(', ') : 'Everyone approved') + '">' + got.length + ' of ' + ap.length + ' approved' + (w.length ? ' · Waiting on ' + esc(w.map(first).join(', ')) : '') + '</span>';
+  var mine = S.me && ap.indexOf(S.me) >= 0;
+  if (!mine) return status;
+  if ((p.approvals || {})[S.me] === 'approved') return status + '<span class="pill p-live">You approved</span>';
+  return status + '<button class="btn btn-lime" data-act="approve" data-id="' + esc(p.id) + '">✓ Approve</button><button class="btn" style="background:var(--rose);color:#5C1208" data-act="changes" data-id="' + esc(p.id) + '">✕ Reject</button>';
 }
 function waitingOn(p){
   if (p.stage === 'brief') return [p.requestedBy];
@@ -759,7 +770,7 @@ function viewProject(id){
   var html = modeBanner();
   html += '<div class="row" style="align-items:flex-end"><div style="display:flex;flex-direction:column;gap:8px"><a href="#/work" class="meta" style="text-decoration:none;font-weight:700">← My work</a><h1>' + esc(p.product) + '</h1><div class="chips">' +
     '<span class="pill p-ok">' + esc(p.id) + '</span><span class="pill p-ok">' + esc(p.category||'') + (p.packType ? ' · ' + esc(p.packType) : '') + '</span><span class="pill p-ok">Requested by ' + esc(p.requestedBy||'') + '</span>' +
-    (p.inMarket ? '<span class="pill" style="background:var(--sky)">In market ' + fmtDate(p.inMarket) + '</span>' : '') + '</div></div><div class="chips">' + waBtn(p) +
+    (p.inMarket ? '<span class="pill" style="background:var(--sky)">In market ' + fmtDate(p.inMarket) + '</span>' : '') + '</div></div><div class="chips" style="justify-content:flex-end">' + approvalBar(p) + waBtn(p) +
     (can('delete') ? '<button class="btn btn-soft" style="color:var(--late)" data-act="deleteProject" data-id="' + esc(p.id) + '">Delete project</button>' : '') + '</div></div>';
   html += '<ol class="stages" aria-label="Stages">' + STAGES.map(function(s,i){
     var done = i < cur || p.stage==='live', isCur = i === cur && p.stage !== 'live';
@@ -1475,6 +1486,8 @@ document.addEventListener('click', function(e){
   if (act === 'toApproval'){ p.version = (p.version||0) + 1; p.approvals = {}; setStage(p,'approval'); log(p,'sent artwork v' + p.version + ' for approval'); save(p); toast('Sent for approval.'); return; }
   if ((act === 'approve' || act === 'changes') && !can('approve')){ toast('Only approvers can sign off artwork.'); return; }
   if (act === 'approve'){
+    if (p.stage !== 'approval'){ toast('This artwork isn’t waiting for approval.'); return; }
+    if ((p.approvers || []).indexOf(S.me) < 0){ toast('You’re not on the approver list for this project.'); return; }
     p.approvals = p.approvals || {}; p.approvals[S.me] = 'approved'; log(p,'approved artwork v' + (p.version||1));
     var all = (p.approvers||[]).every(function(a){ return p.approvals[a]==='approved'; });
     if (all){ setStage(p,'final'); log(p,'all approvals in — final files requested from ' + first(p.designer)); }
