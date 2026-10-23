@@ -300,8 +300,9 @@ function applyTeam(rows){
     var hit = S.team.find(function(r){ return String(r.full_name).trim().toLowerCase() === typed.toLowerCase() || String(r.email).toLowerCase() === typed.toLowerCase(); })
       || S.team.find(function(r){ return String(r.full_name).trim().toLowerCase().split(' ')[0] === typed.toLowerCase(); });
     S.me = hit ? hit.full_name : typed; S.role = ROLES[mine.role] ? mine.role : 'viewer'; S.meLocked = true; if (S.mode === 'notinvited') S.mode = 'live';
+    S.personRole = hit && ROLES[hit.role] ? hit.role : null;
   }
-  else if (mine){ S.me = mine.full_name; S.role = ROLES[mine.role] ? mine.role : 'viewer'; S.meLocked = true; if (S.mode === 'notinvited') S.mode = 'live'; }
+  else if (mine){ S.me = mine.full_name; S.role = ROLES[mine.role] ? mine.role : 'viewer'; S.meLocked = true; if (S.mode === 'notinvited') S.mode = 'live'; S.personRole = S.role; }
   else if (S.mode === 'live'){ S.mode = 'notinvited'; }
   fillMe(); render();
 }
@@ -445,7 +446,11 @@ function approvalBar(p){
     return ready ? '<button class="btn btn-lime" data-act="toApproval" data-id="' + esc(p.id) + '">Send v' + nextV + ' for approval →</button>'
       : '<span class="pill p-today">Waiting for artwork v' + nextV + ' — upload it below</span>';
   }
-  if (p.stage === 'final') return '<span class="pill p-live">All approved · final files next</span>';
+  if (p.stage === 'brief') return amAdmin() ? '<button class="btn btn-lime" data-act="toDesign" data-id="' + esc(p.id) + '">Send to design →</button>' : '<span class="pill p-today">Brief · waiting on ' + esc(first(p.requestedBy || '')) + '</span>';
+  if (p.stage === 'final'){
+    var fin = files(p, 'source').some(function(f){ return f.version === (p.version || 1); }) || !!(p.finalLink && p.finalLink.url);
+    return '<span class="pill p-live">All approved · final files next</span>' + (amAdmin() && fin ? '<button class="btn btn-lime" data-act="handover" data-id="' + esc(p.id) + '">Hand over files →</button>' : '');
+  }
   if (p.stage !== 'approval') return '';
   var ap = p.approvers || [], got = ap.filter(function(a){ return (p.approvals || {})[a] === 'approved'; }), w = waitingOn(p);
   var status = '<span class="pill ' + (w.length ? 'p-today' : 'p-live') + '" title="' + esc(w.length ? 'Not approved yet: ' + w.join(', ') : 'Everyone approved') + '">' + got.length + ' of ' + ap.length + ' approved' + (w.length ? ' · Waiting on ' + esc(w.map(first).join(', ')) : '') + '</span>';
@@ -771,12 +776,20 @@ function fillMe(){
   sel.innerHTML = (S.me ? (inTeam ? '' : '<option value="' + esc(S.me) + '" selected>' + esc(S.me) + '</option>') : '<option value="">Who are you?</option>') + TEAM.map(function(t){ return '<option value="' + esc(t[0]) + '"' + (t[0]===S.me?' selected':'') + '>' + esc(t[0]) + ' · ' + esc(t[1]) + '</option>'; }).join('');
   sel.disabled = !!S.meLocked;
   sel.title = S.meLocked ? 'Linked to ' + (S.email || 'your account') + '. Ask an admin to change it.' : 'Pick your name — you only do this once';
+  var badge = document.getElementById('rolebadge');
+  if (!badge){ badge = document.createElement('span'); badge.id = 'rolebadge'; badge.className = 'pill'; sel.parentNode.insertBefore(badge, sel.nextSibling); }
+  var pr = S.personRole && ROLES[S.personRole] ? S.personRole : null;
+  badge.style.display = pr ? '' : 'none';
+  badge.textContent = pr ? ROLES[pr].label : '';
+  badge.style.background = pr === 'admin' ? '#D9F26B' : 'rgba(0,0,0,.24)'; badge.style.color = pr === 'admin' ? '#111' : '#FFF';
+  badge.title = pr === 'admin' ? 'Admin — you can see and act on every project at every stage' : (pr ? ROLES[pr].who : '');
 }
+function amAdmin(){ return S.personRole === 'admin'; }
 
 
 /* ---------- views ---------- */
 function renderNav(r){
-  var mine = S.projects.filter(function(p){ return waitingOn(p).indexOf(S.me) >= 0; }).length;
+  var mine = S.projects.filter(function(p){ return p.stage !== 'live' && (amAdmin() || waitingOn(p).indexOf(S.me) >= 0); }).length;
   var items = [['work','My work', mine],['projects','Projects'],['library','Library'],['insights','Insights']].concat(can('team') ? [['team','Team']] : []);
   document.getElementById('nav').innerHTML = items.map(function(it){
     var on = r.name === it[0] || (r.name === 'p' && it[0] === 'projects');
@@ -795,7 +808,7 @@ function viewWork(){
   var q = S.q.trim().toLowerCase();
   var defs = [['mine','Needs me'],['all','All active'],['late','Late'],['approval','In approval'],['final','Final files']];
   function test(p, f){
-    if (f === 'mine') return waitingOn(p).indexOf(me) >= 0;
+    if (f === 'mine') return amAdmin() || waitingOn(p).indexOf(me) >= 0;
     if (f === 'late') return due(p).late;
     if (f === 'approval' || f === 'final') return p.stage === f;
     return true;
@@ -803,12 +816,12 @@ function viewWork(){
   var counts = {}; defs.forEach(function(d){ counts[d[0]] = active.filter(function(p){ return test(p, d[0]); }).length; });
   var list = active.filter(function(p){ return test(p, S.filter) && (!q || (p.product + ' ' + p.id + ' ' + p.requestedBy + ' ' + waitingOn(p).join(' ')).toLowerCase().indexOf(q) >= 0); })
     .sort(function(a,b){ return due(b).days - due(a).days || String(a.stageSince).localeCompare(String(b.stageSince)); });
-  var mine = active.filter(function(p){ return waitingOn(p).indexOf(me) >= 0; });
+  var mine = active.filter(function(p){ return amAdmin() || waitingOn(p).indexOf(me) >= 0; });
   var lateMine = mine.filter(function(p){ return due(p).late; }).length;
   var hr = new Date().getHours(), greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
   var html = modeBanner();
   html += '<div class="row" style="align-items:flex-end"><div><h1>' + greet + (me ? ', ' + esc(first(me)) : '') + '</h1><p class="sub">' +
-    (me ? (mine.length ? mine.length + (mine.length===1?' pack needs':' packs need') + ' you' + (lateMine ? ' — ' + lateMine + ' already late.' : '.') : 'You’re all caught up.') : 'Pick your name at the top right — you only do this once.') + '</p></div>' +
+    (me && amAdmin() ? 'Admin view — you can act on all ' + mine.length + ' open pack' + (mine.length === 1 ? '' : 's') + (lateMine ? ', ' + lateMine + ' late.' : '.') : me ? (mine.length ? mine.length + (mine.length===1?' pack needs':' packs need') + ' you' + (lateMine ? ' — ' + lateMine + ' already late.' : '.') : 'You’re all caught up.') : 'Pick your name at the top right — you only do this once.') + '</p></div>' +
     '<div class="tiles"><div class="tile" style="background:var(--sky)"><b>' + mine.length + '</b><span>Needs me</span></div>' +
     '<div class="tile" style="background:var(--peach)"><b>' + active.filter(function(p){ return due(p).late; }).length + '</b><span>Late</span></div>' +
     '<div class="tile dash"><b>' + active.length + '</b><span>Active</span></div></div></div>';
@@ -899,7 +912,7 @@ function viewProject(id){
   return html;
 }
 function nextCard(p){
-  var me = S.me, w = waitingOn(p), mine = w.indexOf(me) >= 0, d = due(p);
+  var me = S.me, w = waitingOn(p), mine = w.indexOf(me) >= 0 || amAdmin(), d = due(p);
   var lateTag = d.label && p.stage!=='live' ? '<span class="pill p-' + d.tone + '">' + esc(d.label) + '</span>' : '';
   var head = function(t){ return '<div class="row"><span class="k">' + (mine ? 'Your next step' : 'Next step') + '</span>' + lateTag + '</div><div class="t">' + t + '</div>'; };
   var up = function(kind, label){ return assets || S.mode !== 'live'
