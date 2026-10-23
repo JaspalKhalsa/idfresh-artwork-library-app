@@ -296,15 +296,39 @@ function loadTeam(){
   });
 }
 function peopleWith(roles){ return (S.team || []).filter(function(r){ return roles.indexOf(r.role) >= 0; }).map(function(r){ return r.full_name; }); }
-function sendInvites(emails){
+// Invites open a ready-written email in your own mail app (Outlook etc.), so they come from you.
+function getTeamPw(){ try { return localStorage.getItem('idf_team_pw') || ''; } catch(e){ return ''; } }
+function setTeamPw(v){ try { if (v) localStorage.setItem('idf_team_pw', v); else localStorage.removeItem('idf_team_pw'); } catch(e){} }
+function inviteText(people){
+  var link = location.origin + location.pathname, pw = getTeamPw(), one = people.length === 1 ? people[0] : null;
+  var first = one ? String(one.full_name).split(' ')[0] : 'all';
+  var role = one && ROLES[one.role] ? ROLES[one.role].label : '';
+  var lines = [
+    'Hi ' + first + ',', '',
+    'You now have access to the iD Fresh Artwork Library — our new home for packaging artwork requests, approvals and final files.' + (role ? ' You’ve been added as ' + (/^[AEIOU]/.test(role) ? 'an ' : 'a ') + role + '.' : ''), '',
+    'How to sign in:',
+    '1. Open: ' + link,
+    '2. Your name: ' + (one ? one.full_name : 'type your name exactly as it is on the team list'),
+    '3. Password: ' + (pw || '[I’ll share this with you separately]'),
+    '4. Click Sign in', '',
+    'It works on mobile too, so you can review and approve on the go.', '',
+    'Please keep the password within the team.', '',
+    'Shout if you get stuck.', '',
+    'Thanks,', (S.me || 'JK')
+  ];
+  return lines.join('\n');
+}
+function sendInvites(emails, known){
+  emails = (emails || []).filter(Boolean);
   if (!emails.length) return Promise.resolve();
-  toast('Sending ' + emails.length + ' invite' + (emails.length > 1 ? 's' : '') + '…');
-  return sb.functions.invoke('invite-user', { body: { emails: emails, redirectTo: location.origin + location.pathname } }).then(function(r){
-    if (r.error || (r.data && r.data.error)){ toast('Invites didn’t send — ' + ((r.data && r.data.error) || r.error.message)); return; }
-    var res = (r.data && r.data.results) || [], okN = res.filter(function(x){ return x.ok; }).length, bad = res.filter(function(x){ return !x.ok; });
-    toast(okN + ' invite' + (okN === 1 ? '' : 's') + ' sent' + (bad.length ? ' · ' + bad.length + ' failed: ' + bad.map(function(b){ return b.email + ' (' + b.error + ')'; }).join(', ') : '.'));
-    loadTeam();
-  });
+  var pool = (known || []).concat(S.team || []);
+  var people = emails.map(function(e){ return pool.find(function(r){ return r.email === e; }) || { email: e, full_name: e.split('@')[0], role: 'viewer' }; });
+  var subject = 'Your access to the iD Fresh Artwork Library';
+  var to = people.length === 1 ? people[0].email : '';
+  var bcc = people.length > 1 ? '&bcc=' + encodeURIComponent(emails.join(',')) : '';
+  location.href = 'mailto:' + encodeURIComponent(to).replace(/%40/g, '@') + '?subject=' + encodeURIComponent(subject) + bcc + '&body=' + encodeURIComponent(inviteText(people));
+  toast('Your email app is opening with the invite — just press Send.');
+  return sb.from('team').update({ invited_at: new Date().toISOString(), invited_by: S.me || null }).in('email', emails).then(function(){ loadTeam(); });
 }
 function parseBulk(text){
   var out = [], errs = [];
@@ -335,8 +359,9 @@ function viewTeam(){
       '<button class="btn btn-dark" data-act="invite" data-email="' + esc(r.email) + '">' + (r.invited_at ? 'Resend invite' : 'Send invite') + '</button>' +
       (r.email === String(S.email).toLowerCase() ? '<span class="pill p-ok" style="min-width:92px;justify-content:center">You</span>' : '<button class="btn btn-soft" data-act="removeMember" data-email="' + esc(r.email) + '" aria-label="Remove ' + esc(r.full_name) + '">Remove</button>') + '</div>';
   }).join('');
-  return '<div class="row" style="align-items:flex-end"><div><h1>Team & access</h1><p class="sub">Add people, set what they can do, and send their sign-in invite.</p></div>' +
+  return '<div class="row" style="align-items:flex-end"><div><h1>Team & access</h1><p class="sub">Add people, set what they can do, and email them how to sign in.</p></div>' +
     (notInv.length ? '<button class="btn btn-lime" data-act="inviteAll">Invite ' + notInv.length + ' people not yet invited</button>' : '') + '</div>' +
+    '<form class="panel" data-form="teampw" style="flex-direction:row;flex-wrap:wrap;align-items:flex-end;gap:12px"><label class="f" style="flex:1 1 260px">Team password for invite emails<input name="pw" type="text" autocomplete="off" value="' + esc(getTeamPw()) + '" placeholder="Leave blank to share it separately"></label><button class="btn btn-dark">Save</button><p class="meta" style="margin:0;flex:1 1 100%">Only saved on this device. Invites open in your own email app (Outlook etc.) ready to send — they come from you, so people trust them.</p></form>' +
     '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">' + roleCards + '</div>' +
     '<div class="split"><div class="main"><section class="panel"><h2>Members · ' + team.length + '</h2>' + (rows || '<p class="meta" style="margin:0">No one yet — add people on the right.</p>') + '</section></div>' +
     '<aside class="side"><form class="panel" data-form="member"><h2>Add a person</h2>' +
@@ -1410,7 +1435,7 @@ document.addEventListener('submit', function(e){
     sb.from('team').upsert(me2).then(function(r){
       if (r.error){ er.textContent = 'Couldn’t add — ' + r.error.message; return; }
       f.reset(); toast(me2.full_name + ' added as ' + ROLES[me2.role].label + '.'); loadTeam();
-      if (go2 === 'invite') sendInvites([me2.email]);
+      if (go2 === 'invite') sendInvites([me2.email], [me2]);
     });
     return;
   }
@@ -1422,8 +1447,13 @@ document.addEventListener('submit', function(e){
     sb.from('team').upsert(parsed.rows).then(function(r){
       if (r.error){ be.textContent = 'Couldn’t add — ' + r.error.message; return; }
       f.elements['list'].value = ''; toast(parsed.rows.length + ' people added.' + (parsed.errors.length ? ' Skipped ' + parsed.errors.length + ': ' + parsed.errors.join(' · ') : '')); loadTeam();
-      if (inv) sendInvites(parsed.rows.map(function(x){ return x.email; }));
+      if (inv) sendInvites(parsed.rows.map(function(x){ return x.email; }), parsed.rows);
     });
+    return;
+  }
+  if (kind === 'teampw'){
+    if (!can('team')) return;
+    setTeamPw(String(f.elements['pw'].value || '').trim()); toast('Saved on this device. It will go into invite emails.');
     return;
   }
   if (kind === 'login' && f.getAttribute('data-mode') === 'shared'){
