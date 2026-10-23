@@ -71,7 +71,9 @@ drop policy if exists "team edits projects"      on public.projects;
 create policy "team reads projects" on public.projects for select to authenticated using (public.is_company() and public.my_role() is not null);
 create policy "team adds projects"  on public.projects for insert to authenticated with check (public.can_edit());
 create policy "team edits projects" on public.projects for update to authenticated using (public.can_edit()) with check (public.can_edit());
--- No delete policy: projects can't be deleted from the app.
+-- Only admins can delete projects.
+drop policy if exists "admins delete projects" on public.projects;
+create policy "admins delete projects" on public.projects for delete to authenticated using (public.is_admin());
 
 drop policy if exists "company reads settings" on public.settings;
 drop policy if exists "company adds settings"  on public.settings;
