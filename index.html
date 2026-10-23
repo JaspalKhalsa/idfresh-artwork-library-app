@@ -877,7 +877,7 @@ function viewInsights(){
 
 /* ---------- AI artwork check ---------- */
 var CHECKS = { all: 'Full check', spelling: 'Spelling', fonts: 'Fonts', colours: 'Colours', barcode: 'Barcode', qr: 'QR link', resolution: 'Resolution' };
-var CHECK_HINT = { spelling: 'UK English dictionary + AI proofread', fonts: 'Exact PDF sizes + minimum size', colours: 'Brand palette, HEX, RGB, CMYK', barcode: 'Reads the bars, checks the digit', qr: 'Decodes the link, checks the domain', resolution: '300 DPI for print' };
+var CHECK_HINT = { spelling: 'UK English dictionary + AI proofread', fonts: 'Exact PDF sizes + minimum size', colours: 'Brand palette, HEX, RGB, CMYK, Pantone', barcode: 'Reads the bars, checks the digit', qr: 'Decodes the link, checks the domain', resolution: '300 DPI for print' };
 var ST_LABEL = { pass: 'Looks good', warn: 'Check', fail: 'Fix needed', na: 'Not run' };
 function safeSt(s){ return (typeof s === 'string' && Object.prototype.hasOwnProperty.call(ST_LABEL, s)) ? s : 'na'; }
 function stTag(s){ s = safeSt(s); return '<span class="st st-' + s + '">' + ST_LABEL[s] + '</span>'; }
@@ -910,14 +910,14 @@ function checkPanel(p){
       (r.fontsPdf.items||[]).map(function(i){ return '<li>“' + esc(String(i.text).length > 60 ? String(i.text).slice(0, 60) + '…' : i.text) + '” — <b>' + esc(i.size) + ' pt</b>' + (i.font ? ' <span class="meta">' + esc(i.font) + '</span>' : '') + '</li>'; })
       .concat((r.fontsPdf.fonts||[]).map(function(f){ return '<li class="meta">Font: ' + esc(f.name) + ' — ' + esc(f.min) + (f.max !== f.min ? '–' + esc(f.max) : '') + ' pt</li>'; })).concat(msg(r.fontsPdf)));
   if (fo) out += block('Fonts · AI size estimate (min ' + esc(fo.minPt || brand().minFontPt) + ' pt)', fo.status, (fo.items||[]).map(function(i){ return '<li>“' + esc(i.text) + '” — about ' + esc(i.estSizePt) + ' pt' + (i.note ? ' <span class="meta">— ' + esc(i.note) + '</span>' : '') + '</li>'; }).concat(msg(fo)));
-  if (co) out += block('Colours · brand palette', co.status, (co.items||[]).map(function(i){ var h = hexOk(i.hex); return '<li><span class="sw" style="background:' + h + '"></span><b>' + esc(i.hex) + '</b> · ' + esc(rgbStr(h)) + ' · ' + esc(cmykStr(h)) + ' · ' + esc(i.share) + '% of artwork' + (i.match ? ' · nearest ' + esc(i.match) + ' (ΔE ' + esc(i.de) + ')' : '') + (i.note ? ' <span class="meta">— ' + esc(i.note) + '</span>' : '') + '</li>'; }).concat(msg(co)));
+  if (co) out += block('Colours · brand palette', co.status, (co.items||[]).map(function(i){ var h = hexOk(i.hex); return '<li><span class="sw" style="background:' + h + '"></span><b>' + esc(i.hex) + '</b> · ' + esc(rgbStr(h)) + ' · ' + esc(cmykStr(h)) + (pantoneStr(h) ? ' · ' + esc(pantoneStr(h)) : '') + ' · ' + esc(i.share) + '% of artwork' + (i.match ? ' · nearest ' + esc(i.match) + ' (ΔE ' + esc(i.de) + ')' : '') + (i.note ? ' <span class="meta">— ' + esc(i.note) + '</span>' : '') + '</li>'; }).concat(msg(co)));
   if (bc) out += block('Barcode', bc.status, [bc.digits ? '<li>' + esc(bc.type || 'Barcode') + ': <b>' + esc(bc.digits) + '</b> — ' + esc(bc.checkDigit || '') + '</li>' : ''].filter(Boolean).concat(msg(bc)));
   if (qr) out += block('QR link', qr.status, [qr.url ? '<li>' + (/^https?:\/\//i.test(String(qr.url)) ? '<a href="' + esc(qr.url) + '" target="_blank" rel="noopener noreferrer">' + esc(qr.url) + '</a>' : esc(qr.url)) + '</li>' : ''].filter(Boolean).concat(msg(qr)));
   if (rs) out += block('Resolution · 300 DPI', rs.status, (rs.items||[]).map(function(t){ return '<li>' + esc(t).replace(/&lt;(\/?)b&gt;/g, '<$1b>') + '</li>'; }).concat(msg(rs)));
   if ((r.other||[]).length) out += block('Other things to look at', 'warn', r.other.map(function(o){ return '<li>' + esc(o) + '</li>'; }));
   return '<section class="panel" id="checks">' + head + bar + status + stale +
     (r.summary ? '<div class="pastel" style="background:var(--lilac)"><div class="hd"><span>Summary</span><span>v' + esc(last.version) + ' · ' + esc(first(last.by)) + ', ' + fmtWhen(last.at) + '</span></div><div class="bd">' + esc(r.summary) + '</div></div>' : '<div class="meta">Last run by ' + esc(first(last.by)) + ', ' + fmtWhen(last.at) + '</div>') +
-    out + '<p class="meta" style="margin:0">CMYK values are a screen-to-print estimate — match against the printer’s proof. AI can miss things: approvers still own the final check.</p></section>';
+    out + '<p class="meta" style="margin:0">CMYK values are a screen-to-print estimate. Pantone shows the nearest TCX shade from a public list — confirm against the printer’s Pantone guide (C/U) and proof. AI can miss things: approvers still own the final check.</p></section>';
 }
 
 function loadScript(src){ return new Promise(function(res, rej){ var s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = function(){ rej(new Error('load')); }; document.head.appendChild(s); }); }
@@ -960,6 +960,25 @@ function cmykStr(hex){
   return 'C' + f(r) + ' M' + f(g) + ' Y' + f(b) + ' K' + Math.round(k * 100);
 }
 function rgbStr(hex){ var c = hexToRgb(hex); return c ? 'RGB ' + c.join(' ') : ''; }
+// Nearest Pantone (TCX) shade, from github.com/Margaret2/pantone-colors, loaded the first time it's needed.
+var PANTONE = null, PANTONE_BUSY = false, PANTONE_CACHE = {};
+function pantoneFor(hex){
+  if (!PANTONE){
+    if (!PANTONE_BUSY){ PANTONE_BUSY = true;
+      fetch('https://cdn.jsdelivr.net/gh/Margaret2/pantone-colors@master/pantone-numbers.json').then(function(r){ if (!r.ok) throw 0; return r.json(); }).then(function(j){
+        PANTONE = Object.keys(j).map(function(k){ var rgb = hexToRgb(j[k].hex); return rgb ? { code: k, name: String(j[k].name || '').replace(/-/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); }), rgb: rgb, lab: lab(rgb) } : null; }).filter(Boolean);
+        scheduleRender();
+      }).catch(function(){ PANTONE_BUSY = false; });
+    }
+    return null;
+  }
+  if (PANTONE_CACHE[hex]) return PANTONE_CACHE[hex];
+  var c = hexToRgb(hex); if (!c) return null;
+  var L = lab(c), best = null;
+  PANTONE.forEach(function(p){ var d = Math.sqrt(Math.pow(L[0]-p.lab[0],2)+Math.pow(L[1]-p.lab[1],2)+Math.pow(L[2]-p.lab[2],2)); if (!best || d < best.d) best = { p: p, d: d }; });
+  return (PANTONE_CACHE[hex] = best ? { label: 'Pantone ' + best.p.code + ' TCX ' + best.p.name, de: Math.round(best.d * 10) / 10 } : null);
+}
+function pantoneStr(hex){ var m = pantoneFor(hex); return m ? m.label + ' (ΔE ' + m.de + ')' : (PANTONE_BUSY ? 'Pantone loading…' : ''); }
 function hexToRgb(h){ var m = /^#?([0-9a-f]{6})$/i.exec(String(h).trim()); if (!m) return null; var n = parseInt(m[1],16); return [n>>16&255, n>>8&255, n&255]; }
 function toHex(r,g,b){ return '#' + [r,g,b].map(function(v){ return ('0' + Math.round(v).toString(16)).slice(-2); }).join('').toUpperCase(); }
 function lab(rgb){
