@@ -475,6 +475,40 @@ function celebrate(name, all, p){
     requestAnimationFrame(frame);
   })(t0);
 }
+function safeLink(u){ try { var x = new URL(String(u || '').trim()); return x.protocol === 'https:' ? x.href : ''; } catch(e){ return ''; } }
+// Excel report: every project with its artwork PDF link and final files link, in one sheet.
+function exportReport(){
+  var list = S.projects.slice().sort(function(a, b){ return String(b.createdAt).localeCompare(String(a.createdAt)); });
+  if (!list.length){ toast('No projects to export yet.'); return; }
+  toast('Building the report…');
+  var arts = list.map(function(p){ return latestArt(p); });
+  var srcs = list.map(function(p){ var s = files(p, 'source'); return s.length ? s[s.length - 1] : null; });
+  var paths = arts.concat(srcs).filter(function(f){ return f && f.path; }).map(function(f){ return f.path; });
+  var DAYS = 30;
+  var signed = paths.length ? sb.storage.from('artwork').createSignedUrls(paths, DAYS * 86400).then(function(r){ var m = {}; (r.data || []).forEach(function(x){ if (x.signedUrl) m[x.path] = x.signedUrl; }); return m; }) : Promise.resolve({});
+  var lib = window.XLSX ? Promise.resolve() : loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+  Promise.all([signed, lib]).then(function(res){
+    var urls = res[0], X = window.XLSX;
+    var head = ['AW no.', 'Product', 'Category', 'Pack size', 'Pack type', 'FG code', 'Stage', 'Version', 'Requested by', 'Designer', 'Approvers', 'Approved by', 'Waiting on', 'In market', 'Created', 'Artwork file', 'Artwork PDF link', 'Final files link (WeTransfer)', 'Print-ready file link'];
+    var rows = list.map(function(p, i){
+      var a = arts[i], s = srcs[i], ap = p.approvers || [];
+      return [p.id, p.product || '', p.category || '', p.packSize || '', p.packType || '', p.fgCode || '', stageLabel(p), parseInt(p.version, 10) || 0, p.requestedBy || '', p.designer || '',
+        ap.join(', '), ap.filter(function(n){ return (p.approvals || {})[n] === 'approved'; }).join(', '), waitingOn(p).filter(Boolean).join(', '),
+        p.inMarket || '', p.createdAt ? String(p.createdAt).slice(0, 10) : '', a ? a.name : '',
+        a && a.path && urls[a.path] ? urls[a.path] : '', p.finalLink && safeLink(p.finalLink.url) ? safeLink(p.finalLink.url) : '', s && s.path && urls[s.path] ? urls[s.path] : ''];
+    });
+    var ws = X.utils.aoa_to_sheet([head].concat(rows));
+    [16, 17, 18].forEach(function(col){ rows.forEach(function(r, i){ var v = r[col]; if (!v) return; var ref = X.utils.encode_cell({ r: i + 1, c: col }); ws[ref] = { t: 's', v: col === 17 ? 'Open final files' : col === 16 ? 'Open artwork PDF' : 'Open print-ready file', l: { Target: v } }; }); });
+    ws['!cols'] = head.map(function(h, i){ return { wch: [8, 28, 14, 10, 14, 10, 16, 8, 16, 16, 28, 28, 22, 11, 11, 30, 18, 24, 20][i] || 14 }; });
+    ws['!autofilter'] = { ref: X.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: rows.length, c: head.length - 1 } }) };
+    var note = X.utils.aoa_to_sheet([['iD Fresh Artwork Library — report'], ['Exported', new Date().toLocaleString('en-GB')], ['By', S.me || ''], ['Projects', list.length], [''], ['Artwork PDF and print-ready links are private and work for ' + DAYS + ' days from export. Export again for fresh links.']]);
+    note['!cols'] = [{ wch: 18 }, { wch: 60 }];
+    var wb = X.utils.book_new(); X.utils.book_append_sheet(wb, ws, 'Projects'); X.utils.book_append_sheet(wb, note, 'About');
+    var d = new Date(), stamp = ('0' + d.getDate()).slice(-2) + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + d.getFullYear();
+    X.writeFile(wb, 'iD Fresh Artwork Report ' + stamp + '.xlsx');
+    toast('Report downloaded — ' + list.length + ' project' + (list.length === 1 ? '' : 's') + '.');
+  }).catch(function(){ toast('Couldn’t build the report. Check your connection and try again.'); });
+}
 // Sad-face pop-up when artwork is rejected, with slow falling tears.
 function sadPop(q, reason){
   var old = document.getElementById('thanks'); if (old) old.remove();
@@ -821,7 +855,7 @@ function viewProjects(){
   var list = S.projects.filter(function(p){ return !q || (p.product+' '+p.id+' '+p.category+' '+p.requestedBy).toLowerCase().indexOf(q)>=0; })
     .sort(function(a,b){ return String(b.createdAt).localeCompare(String(a.createdAt)); });
   var html = modeBanner() + '<div class="row" style="align-items:flex-end"><div><h1>Projects</h1><p class="sub">Every artwork request, newest first.</p></div>' +
-    '<label class="search"><span class="sr">Search projects</span><input id="q" type="search" placeholder="Search projects" value="' + esc(S.q) + '"></label></div>';
+    '<div class="chips"><button class="btn btn-lime" data-act="exportXls">Download report (Excel)</button><label class="search"><span class="sr">Search projects</span><input id="q" type="search" placeholder="Search projects" value="' + esc(S.q) + '"></label></div></div>';
   if (!list.length) return html + '<div class="empty"><b>No projects found</b><button class="btn btn-dark" data-act="new">New request</button></div>';
   return html + '<div class="list">' + list.map(function(p){
     return '<div class="card">' + thumb(p) + '<div style="flex:1 1 220px;min-width:0"><a class="title" href="#/p/' + encodeURIComponent(p.id) + '">' + esc(p.product) + '</a><div class="meta">' + esc(p.id) + ' · ' + esc(p.brand||'') + ' · created ' + fmtDate(p.createdAt) + ' by ' + esc(p.requestedBy||'') + '</div></div>' +
@@ -859,6 +893,7 @@ function viewProject(id){
     return '<div class="fileline"><span class="ext" style="background:' + bg + '">' + esc(ext) + '</span><span style="flex:1 1 220px;min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis">' + esc(f.name) + '</b><span class="meta">' + esc({artwork:'Artwork',source:'Print-ready source',keyline:'Key line drawing',brief:'Brief'}[f.kind]||f.kind) + (f.version ? ' · v' + esc(f.version) : '') + ' · ' + esc(first(f.by)) + ', ' + fmtDate(f.at) + '</span></span>' +
       (fileUrl(f) ? '<button class="btn btn-soft" data-act="dl" data-url="' + esc(fileUrl(f)) + '" data-name="' + esc(f.name) + '">Download</button>' : '') + '</div>';
   }).join('') : '<p class="meta" style="margin:0">No files yet.</p>') +
+    (p.finalLink && safeLink(p.finalLink.url) ? '<div class="fileline"><span class="ext" style="background:var(--mint)">LINK</span><span style="flex:1 1 220px;min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis;word-break:break-all">' + esc(p.finalLink.url) + '</b><span class="meta">Final files link · v' + esc(p.finalLink.version || p.version || 1) + ' · ' + esc(first(p.finalLink.by || '')) + ', ' + fmtDate(p.finalLink.at) + '</span></span><a class="btn btn-soft" href="' + esc(safeLink(p.finalLink.url)) + '" target="_blank" rel="noopener noreferrer">Open link</a></div>' : '') +
     (can('upload') ? '<label class="btn btn-soft" style="align-self:flex-start;cursor:pointer">Add brief or key line<input type="file" class="sr" data-up="keyline" data-id="' + esc(p.id) + '"></label>' : '') + '</section>' + checkPanel(p) + '</div>';
   html += '<aside class="side">' + nextCard(p) + approvalsPanel(p) + notesPanel(p) + detailsPanel(p) + '</aside></div>';
   return html;
@@ -881,8 +916,9 @@ function nextCard(p){
   if (p.stage === 'approval') return '<div class="next">' + head('Approve artwork v' + esc(parseInt(p.version, 10) || 1)) + '<div>Check what you’re responsible for as ' + esc(DEPT[me]||'approver') + '. If something needs fixing, request changes with a reason.</div>' +
     '<button class="btn btn-dark" data-act="approve" data-id="' + esc(p.id) + '">Approve artwork</button><button class="btn btn-white" data-act="changes" data-id="' + esc(p.id) + '">Request changes</button></div>';
   if (p.stage === 'final'){
-    var has = files(p,'source').some(function(f){ return f.version === (p.version||1); });
-    return '<div class="next">' + head('Hand over the final files') + '<div>All approvers signed off. Upload the print-ready source so the printer and Library get the right version.</div>' + up('source', has ? 'Add another file' : 'Drop final files here or browse') +
+    var has = files(p,'source').some(function(f){ return f.version === (p.version||1); }) || !!(p.finalLink && p.finalLink.url);
+    return '<div class="next">' + head('Hand over the final files') + '<div>All approvers signed off. Upload the print-ready source, or paste a WeTransfer link for big files, so the printer and Library get the right version.</div>' + up('source', has ? 'Add another file' : 'Drop final files here or browse') +
+      '<form data-form="finallink" data-id="' + esc(p.id) + '" style="display:flex;flex-direction:column;gap:8px"><label class="f">WeTransfer link (or any download link)<input name="url" type="url" inputmode="url" placeholder="https://we.tl/…" value="' + esc((p.finalLink && p.finalLink.url) || '') + '"></label><p class="err" id="fl-err" role="alert"></p><button class="btn btn-white">' + (p.finalLink ? 'Update link' : 'Save link') + '</button></form>' +
       '<button class="btn btn-dark" data-act="handover" data-id="' + esc(p.id) + '"' + (has ? '' : ' disabled') + '>Hand over files</button></div>';
   }
   return '';
@@ -911,7 +947,7 @@ function viewLibrary(){
   var q = S.libq.trim().toLowerCase();
   var cats = ['All'].concat(CATS.filter(function(c){ return live.some(function(p){ return p.category===c; }); }));
   var list = live.filter(function(p){ return (S.lib==='All' || p.category===S.lib) && (!q || (p.product+' '+p.id+' '+(p.fgCode||'')).toLowerCase().indexOf(q)>=0); });
-  var ready = live.filter(function(p){ return files(p,'source').length; }).length;
+  var ready = live.filter(function(p){ return files(p,'source').length || (p.finalLink && p.finalLink.url); }).length;
   var html = modeBanner() + '<div class="row" style="align-items:flex-end"><div><h1>Library</h1><p class="sub">The latest approved version of every pack. Always print-ready, never “final_final_v3”.</p></div>' +
     '<div class="tiles"><div class="tile" style="background:var(--mint)"><b>' + ready + '</b><span>Print-ready</span></div><div class="tile" style="background:var(--rose)"><b>' + (live.length - ready) + '</b><span>Source missing</span></div></div></div>';
   html += '<div class="row"><div class="chips" role="tablist" aria-label="Category">' + cats.map(function(c){ return '<button class="chip" role="tab" aria-selected="' + (S.lib===c) + '" data-act="lib" data-v="' + esc(c) + '">' + esc(c) + '</button>'; }).join('') + '</div>' +
@@ -1497,6 +1533,7 @@ document.addEventListener('click', function(e){
   if (act === 'filter'){ S.filter = t.getAttribute('data-v'); render(); return; }
   if (act === 'lib'){ S.lib = t.getAttribute('data-v'); render(); return; }
   if (act === 'signout'){ setName(''); sb.auth.signOut(); return; }
+  if (act === 'exportXls'){ exportReport(); return; }
   if (act === 'deleteProject'){
     if (!can('delete')) return;
     var dp = S.projects.find(function(x){ return x.id === id; }); if (!dp) return;
@@ -1651,6 +1688,13 @@ document.addEventListener('submit', function(e){
   if (kind === 'note'){
     var txt = (f.elements['t'].value||'').trim(); if (!txt) return; if (!S.me){ toast('Pick your name at the top right first.'); return; }
     var p = copy(find(f.getAttribute('data-id'))); p.notes = p.notes || []; p.notes.push({ by:S.me, text:txt, at:nowIso(), kind:'comment' }); f.elements['t'].value=''; save(p); return;
+  }
+  if (kind === 'finallink'){
+    var link = safeLink(f.elements['url'].value), fe = document.getElementById('fl-err');
+    if (!link){ fe.textContent = 'Paste a full https:// link, e.g. https://we.tl/…'; return; }
+    var fp = copy(find(f.getAttribute('data-id'))); if (!fp) return;
+    fp.finalLink = { url: link, by: S.me, at: nowIso(), version: parseInt(fp.version, 10) || 1 };
+    log(fp, 'added the final files link for v' + fp.finalLink.version); save(fp); toast('Final files link saved. You can hand over now.'); return;
   }
   if (kind === 'changes'){
     var reason = f.elements['reason'].value, text = (f.elements['text'].value||'').trim();
