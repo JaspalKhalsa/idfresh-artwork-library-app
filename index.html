@@ -446,6 +446,32 @@ function waIcon(p){ return '<a class="btn btn-wa" style="width:48px;padding:0" h
 function files(p, kind){ return (p.files||[]).filter(function(f){ return !kind || f.kind === kind; }); }
 function fileUrl(f){ return f.path ? signedUrl(f.path) : (f.url || ''); }
 function isImg(f){ return /\.(png|jpe?g|webp|gif|svg)$/i.test(f.name||''); }
+// PDF artwork previews: page 1 is drawn to an image once per file and reused everywhere.
+var PREV = {};
+function isPdf(f){ return /\.pdf$/i.test((f && f.name) || ''); }
+function previewSrc(f){
+  if (!f) return '';
+  if (isImg(f)) return fileUrl(f);
+  if (!isPdf(f) || !f.path) return '';
+  var k = f.path, e = PREV[k];
+  if (e && e.url) return e.url;
+  if (!e){
+    PREV[k] = { busy: true };
+    renderPdfPreview(f).then(function(u){ PREV[k] = { url: u }; scheduleRender(); }).catch(function(){ PREV[k] = { failed: true }; scheduleRender(); });
+  }
+  return '';
+}
+function renderPdfPreview(f){
+  return sb.storage.from('artwork').download(f.path).then(function(r){ if (r.error || !r.data) throw new Error('download'); return r.data.arrayBuffer(); })
+    .then(function(buf){ return (window.pdfjsLib ? Promise.resolve() : loadScript(PDFJS + 'pdf.min.js')).then(function(){ window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + 'pdf.worker.min.js'; return window.pdfjsLib.getDocument({ data: buf }).promise; }); })
+    .then(function(pdf){ return pdf.getPage(1); })
+    .then(function(page){
+      var v1 = page.getViewport({ scale: 1 }), s = Math.min(1800 / Math.max(v1.width, v1.height), 3), vp = page.getViewport({ scale: s });
+      var c = document.createElement('canvas'); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+      var ctx = c.getContext('2d'); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, c.width, c.height);
+      return page.render({ canvasContext: ctx, viewport: vp }).promise.then(function(){ return new Promise(function(res, rej){ c.toBlob(function(b){ b ? res(URL.createObjectURL(b)) : rej(new Error('blob')); }, 'image/jpeg', 0.88); }); });
+    });
+}
 function latestArt(p){ var a = files(p,'artwork'); return a.length ? a[a.length-1] : null; }
 
 /* ---------- data (Supabase) ---------- */
@@ -622,7 +648,7 @@ function stageBar(p){
 }
 function thumb(p, big){
   var a = latestArt(p);
-  var img = a && isImg(a) && fileUrl(a) ? '<img src="' + esc(fileUrl(a)) + '" alt="">' : '';
+  var src = previewSrc(a), img = src ? '<img src="' + esc(src) + '" alt="">' : '';
   return '<div class="thumb" style="background:' + (CAT_COLOR[p.category] || 'var(--mint)') + '" aria-hidden="true">' + img + '<em>' + esc(p.packSize || p.category || '') + '</em></div>';
 }
 function route(){ var h = location.hash.replace(/^#\/?/, ''); var parts = h.split('/'); return { name: parts[0] || 'work', id: decodeURIComponent(parts[1] || '') }; }
@@ -743,8 +769,10 @@ function viewProject(id){
   }).join('') + '</ol>';
   var art = latestArt(p);
   var preview = !art ? '<div style="text-align:center;display:flex;flex-direction:column;gap:6px"><b style="font-size:20px">No artwork yet</b><span style="color:#4F4F4F">' + esc(p.designer||'The designer') + ' will upload v1 here.</span></div>'
-    : (isImg(art) && fileUrl(art) ? '<img src="' + esc(fileUrl(art)) + '" alt="' + esc(p.product) + ' artwork v' + esc(art.version) + '">'
+    : (previewSrc(art) ? '<div style="display:flex;flex-direction:column;gap:12px;align-items:center;width:100%"><img src="' + esc(previewSrc(art)) + '" alt="' + esc(p.product) + ' artwork v' + esc(art.version) + '">' +
+      (fileUrl(art) ? '<div class="chips" style="justify-content:center"><a class="btn btn-soft" href="' + esc(fileUrl(art)) + '" target="_blank" rel="noopener noreferrer">Open full size</a><button class="btn btn-dark" data-act="dl" data-url="' + esc(fileUrl(art)) + '" data-name="' + esc(art.name) + '">Download artwork</button></div>' : '') + '</div>'
     : '<div style="text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center"><span class="ext" style="width:72px;height:72px;font-size:16px;background:var(--peach)">' + esc((art.name.split('.').pop()||'FILE').toUpperCase().slice(0,4)) + '</span><b style="font-size:18px">' + esc(art.name) + '</b>' +
+      (isPdf(art) && art.path && PREV[art.path] && PREV[art.path].busy ? '<span style="color:#4F4F4F">Loading preview…</span>' : '') +
       (fileUrl(art) ? '<button class="btn btn-dark" data-act="dl" data-url="' + esc(fileUrl(art)) + '" data-name="' + esc(art.name) + '">Download artwork</button>' : '<span style="color:#4F4F4F">File stored outside the Library</span>') + '</div>');
   html += '<div class="split"><div class="main"><section class="art" aria-label="Artwork"><div class="row" style="padding:4px 6px 0"><div><h2>Packaging artwork</h2><div style="font-size:14px;font-weight:600">' + (art ? 'v' + esc(art.version) + ' · ' + esc(art.name) + ' · ' + esc(first(art.by)) + ', ' + fmtDate(art.at) : 'Waiting for first upload') + '</div></div></div><div class="stage-box' + (art ? ' has-art' : '') + '">' + preview + '</div></section>';
   html += '<section class="panel"><h2>Files & versions</h2>' + (files(p).length ? files(p).slice().reverse().map(function(f){
@@ -813,7 +841,7 @@ function viewLibrary(){
   if (!list.length) return html + '<div class="empty"><b>' + (live.length ? 'No packs found' : 'The Library is empty') + '</b><span class="meta">' + (live.length ? 'Try another name, or pick “All”.' : 'Packs land here when their final files are handed over.') + '</span></div>';
   return html + '<div class="grid">' + list.map(function(p){
     var a = latestArt(p), src = files(p,'source');
-    var img = a && isImg(a) && fileUrl(a) ? '<img src="' + esc(fileUrl(a)) + '" alt="">' : '';
+    var src = previewSrc(a), img = src ? '<img src="' + esc(src) + '" alt="">' : '';
     var dl = src.filter(fileUrl)[0];
     return '<article class="lib"><div class="pv" style="background:' + (CAT_COLOR[p.category]||'var(--mint)') + '">' + img + '<div class="row"><span class="tag">v' + esc(p.version||1) + '</span><span class="tag dark">' + esc(p.packType||'Pack') + '</span></div><div style="font-size:22px;font-weight:800;line-height:1.1">' + (img ? '' : esc(p.product.replace(/^iD Fresh\s*/i,''))) + '</div></div>' +
       '<div style="padding:0 8px"><a class="title" style="font-size:17px" href="#/p/' + encodeURIComponent(p.id) + '">' + esc(p.product) + '</a><div class="meta">' + esc(p.category||'') + ' · live since ' + fmtDate(p.stageSince) + '</div></div>' +
