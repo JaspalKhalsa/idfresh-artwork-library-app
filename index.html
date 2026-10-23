@@ -262,7 +262,7 @@ var ROLES = {
 var ROLE_ORDER = ['admin', 'requester', 'designer', 'approver', 'viewer'];
 var DEPTS = ['Creative', 'Marketing', 'Quality', 'Legal', 'Manufacturing', 'Sales', 'Agency', 'Other'];
 var CAN = {
-  admin:     ['request', 'design', 'approve', 'check', 'note', 'nudge', 'upload', 'settings', 'team'],
+  admin:     ['request', 'design', 'approve', 'check', 'note', 'nudge', 'upload', 'settings', 'team', 'delete'],
   requester: ['request', 'note', 'nudge', 'upload'],
   designer:  ['request', 'design', 'check', 'note', 'nudge', 'upload'],
   approver:  ['approve', 'check', 'note', 'nudge'],
@@ -733,7 +733,8 @@ function viewProject(id){
   var html = modeBanner();
   html += '<div class="row" style="align-items:flex-end"><div style="display:flex;flex-direction:column;gap:8px"><a href="#/work" class="meta" style="text-decoration:none;font-weight:700">← My work</a><h1>' + esc(p.product) + '</h1><div class="chips">' +
     '<span class="pill p-ok">' + esc(p.id) + '</span><span class="pill p-ok">' + esc(p.category||'') + (p.packType ? ' · ' + esc(p.packType) : '') + '</span><span class="pill p-ok">Requested by ' + esc(p.requestedBy||'') + '</span>' +
-    (p.inMarket ? '<span class="pill" style="background:var(--sky)">In market ' + fmtDate(p.inMarket) + '</span>' : '') + '</div></div>' + waBtn(p) + '</div>';
+    (p.inMarket ? '<span class="pill" style="background:var(--sky)">In market ' + fmtDate(p.inMarket) + '</span>' : '') + '</div></div><div class="chips">' + waBtn(p) +
+    (can('delete') ? '<button class="btn btn-soft" style="color:var(--late)" data-act="deleteProject" data-id="' + esc(p.id) + '">Delete project</button>' : '') + '</div></div>';
   html += '<ol class="stages" aria-label="Stages">' + STAGES.map(function(s,i){
     var done = i < cur || p.stage==='live', isCur = i === cur && p.stage !== 'live';
     var meta = isCur ? (w.length ? 'Waiting on ' + w.map(first).join(', ') : '') : (done ? 'Done' : 'Next');
@@ -1371,6 +1372,17 @@ document.addEventListener('click', function(e){
   if (act === 'filter'){ S.filter = t.getAttribute('data-v'); render(); return; }
   if (act === 'lib'){ S.lib = t.getAttribute('data-v'); render(); return; }
   if (act === 'signout'){ setName(''); sb.auth.signOut(); return; }
+  if (act === 'deleteProject'){
+    if (!can('delete')) return;
+    var dp = S.projects.find(function(x){ return x.id === id; }); if (!dp) return;
+    if (!window.confirm('Delete ' + dp.id + ' · ' + dp.product + '?\n\nThis removes the project, its notes and history for everyone. It can’t be undone.')) return;
+    sb.from('projects').delete().eq('id', id).select('id').then(function(r){
+      if (r.error){ toast('Couldn’t delete — ' + r.error.message); return; }
+      if (!r.data || !r.data.length){ toast('Couldn’t delete — the database doesn’t allow it yet. Ask Jaspal to run the delete setup.'); return; }
+      S.projects = S.projects.filter(function(x){ return x.id !== id; }); toast(dp.id + ' deleted.'); location.hash = '#/projects'; render();
+    });
+    return;
+  }
   if (act === 'loginMode'){ S.loginMode = t.getAttribute('data-v'); S.loginSent = null; render(); return; }
   if (act === 'forgotPw'){
     var fe = document.querySelector('form[data-form=login] [name=email]'), em2 = fe ? String(fe.value || '').trim().toLowerCase() : '';
